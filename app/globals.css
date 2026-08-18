@@ -1,0 +1,176 @@
+/*
+ * 全部 design token 的根定义 — PRD v1.1 §1.1-1.5
+ * dark mode 通过 <html data-theme="dark"> 切换；用 :root.dark 也兼容。
+ * K3 视觉升级：只动这一处 CSS 变量，组件层不动。
+ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ───────── LXGW WenKai 中文展示字体（可选，加速 Sprint 1 后启用） ───────── */
+/* 生产环境建议自托管。Sprint 0 不开。开发期先用系统 serif fallback。 */
+/*
+@font-face {
+  font-family: 'LXGW WenKai';
+  src: url('https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/LXGWWenKai-Regular.woff2') format('woff2');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LXGW WenKai';
+  src: url('https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/LXGWWenKai-Bold.woff2') format('woff2');
+  font-weight: 600;
+  font-display: swap;
+}
+*/
+
+:root {
+  /* === 1.1 色彩 — Light === */
+  --bg-canvas: #f6f1e7;
+  --bg-surface: #fffcf4;
+  --bg-elevated: #fffef8;
+  --bg-overlay: rgba(43, 40, 33, 0.45);
+
+  --border-hairline: #e8dfcb;
+
+  --ink-primary: #2a2620;
+  --ink-secondary: #6e6655;
+  --ink-tertiary: #a89f8a;
+
+  --accent-sage: #7a9471;
+  --accent-sage-soft: #e4ecdd;
+  --accent-clay: #c97b5a;
+  --accent-clay-soft: #f4dbc9;
+  --accent-honey: #d5a24e;
+
+  --confidence-low: #d5a24e;
+  --confidence-mid: #a0aeb8;
+
+  /* === 1.2 字体（流体） === */
+  --font-display: clamp(28px, 6vw, 36px);
+  --font-h1: 24px;
+  --font-h2: 20px;
+  --font-h3: 17px;
+  --font-body: 15px;
+  --font-small: 13px;
+  --font-micro: 11px;
+
+  /* === 1.3 间距 === */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* === 1.3 圆角 — 不要统一 === */
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-pill: 999px;
+
+  /* === 1.4 动效 === */
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-cubic: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-tap: 120ms;
+  --dur-enter: 240ms;
+  --dur-leave: 160ms;
+  --dur-page: 320ms;
+}
+
+:root.dark,
+:root[data-theme='dark'] {
+  --bg-canvas: #1b1a17;
+  --bg-surface: #26231d;
+  --bg-elevated: #2e2a22;
+  --bg-overlay: rgba(0, 0, 0, 0.6);
+
+  --border-hairline: #3d372c;
+
+  --ink-primary: #f2ead9;
+  --ink-secondary: #a89f8a;
+  --ink-tertiary: #6e6655;
+
+  --accent-sage: #a5c39b;
+  --accent-sage-soft: #3e4d3a;
+  --accent-clay: #e29b7a;
+  --accent-clay-soft: #5a3c2c;
+  --accent-honey: #e5bc75;
+
+  --confidence-low: #e5bc75;
+  --confidence-mid: #8a98a2;
+}
+
+/* ───────── 全局基线 ───────── */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    border-color: var(--border-hairline);
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+    /* 1rem = 16px，跟随系统设置 */
+    font-size: 16px;
+  }
+
+  body {
+    background: var(--bg-canvas);
+    color: var(--ink-primary);
+    font-family: 'PingFang SC', 'Microsoft YaHei', system-ui, -apple-system,
+      sans-serif;
+    font-size: var(--font-body);
+    line-height: 1.7;
+    /* PRD §0.1 不要纯白；增加纸颗粒感 */
+    background-image:
+      radial-gradient(rgba(0, 0, 0, 0.018) 1px, transparent 1px),
+      radial-gradient(rgba(0, 0, 0, 0.012) 1px, transparent 1px);
+    background-size: 24px 24px, 18px 18px;
+    background-position: 0 0, 9px 9px;
+  }
+
+  /* PRD §7 数字字体 */
+  .font-num,
+  [data-num] {
+    font-feature-settings: 'tnum' 1;
+    font-variant-numeric: tabular-nums;
+    font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
+  }
+
+  /* PRD §7 焦点环 */
+  :focus-visible {
+    outline: 2px solid var(--accent-sage);
+    outline-offset: 4px;
+    border-radius: 2px;
+  }
+
+  /* 不要默认链接颜色破坏气质 */
+  a {
+    color: inherit;
+  }
+}
+
+@layer utilities {
+  /* PRD §2.4 inset divider — 仅在列表项间出现 */
+  .divider-inset {
+    border-top: 1px solid var(--border-hairline);
+  }
+
+  /* 数字滚动容器 */
+  .num-roll {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1;
+  }
+
+  /* 安全区内边距（移动端刘海屏） */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
