@@ -14,6 +14,7 @@ import {
   AlertTriangle,
   ImageIcon,
   RefreshCw,
+  Save,
 } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
@@ -123,9 +124,26 @@ export default function ConfirmPage({
           return
         }
         setTask(data.task)
+        // 草稿恢复：暂存时把编辑状态存进了 task.draft_json.decisions
+        const draftDecisions = (data.task?.draft_json?.decisions ?? []) as Array<{
+          recognition_item_id: string
+          action: Action
+          final_name?: string
+          final_quantity?: number
+          final_unit?: string | null
+          final_brand?: string | null
+          final_category_id?: string | null
+          final_package_quantity?: number | null
+          final_expiry_date?: string | null
+          matched_item_id?: string | null
+        }>
+        const draftMap = new Map(
+          draftDecisions.map((d) => [d.recognition_item_id, d])
+        )
         setItems(
           (data.items ?? []).map((row: any): ItemRow => {
             const tier = computeTier(row.confidence_json ?? row.confidence)
+            const saved = draftMap.get(row.recognition_item_id)
             const defaultAction =
               row.duplicate?.status === 'strict_match' || row.duplicate?.status === 'fuzzy_match'
                 ? 'merge'
@@ -133,18 +151,22 @@ export default function ConfirmPage({
             return {
               recognition_item_id: row.recognition_item_id,
               raw_name: row.raw_name,
-              name: row.final_name ?? row.predicted_name ?? '',
-              brand: row.predicted_brand ?? null,
-              quantity: row.final_quantity ?? row.predicted_quantity ?? 1,
-              unit: row.final_unit ?? row.predicted_unit ?? null,
+              name: saved?.final_name ?? row.final_name ?? row.predicted_name ?? '',
+              brand: saved?.final_brand ?? row.predicted_brand ?? null,
+              quantity:
+                saved?.final_quantity ?? row.final_quantity ?? row.predicted_quantity ?? 1,
+              unit: saved?.final_unit ?? row.final_unit ?? row.predicted_unit ?? null,
               package_quantity:
-                row.final_package_quantity ?? row.predicted_package_quantity ?? null,
-              category_id: row.final_category_id ?? null,
+                saved?.final_package_quantity ??
+                row.final_package_quantity ??
+                row.predicted_package_quantity ??
+                null,
+              category_id: saved?.final_category_id ?? row.final_category_id ?? null,
               category_hint: null,
-              expiry_date: row.predicted_expiry_date ?? null,
+              expiry_date: saved?.final_expiry_date ?? row.predicted_expiry_date ?? null,
               confidence: row.confidence_json ?? row.confidence,
               duplicate: row.duplicate,
-              action: defaultAction,
+              action: saved?.action ?? defaultAction,
               corrected: false,
               expanded: tier === 'low',
             }
@@ -198,6 +220,51 @@ export default function ConfirmPage({
     )
   }
 
+  function buildDecisions() {
+    return items.map((it) => {
+      const base: any = {
+        recognition_item_id: it.recognition_item_id,
+        action: it.action,
+        final_name: it.name.trim(),
+        final_quantity: Number(it.quantity) || 0,
+        corrected: it.corrected,
+      }
+      if (it.unit) base.final_unit = it.unit
+      if (it.brand) base.final_brand = it.brand
+      if (it.category_id) base.final_category_id = it.category_id
+      if (it.package_quantity) base.final_package_quantity = Number(it.package_quantity)
+      if (it.expiry_date) base.final_expiry_date = it.expiry_date
+      if (it.action === 'merge' && it.duplicate?.matched) {
+        base.matched_item_id = it.duplicate.matched.item_id
+      }
+      return base
+    })
+  }
+
+  // 暂存为草稿（PRD §3.10）—— 不入库，存编辑状态，改天继续
+  const [savingDraft, setSavingDraft] = React.useState(false)
+
+  async function onSaveDraft() {
+    if (items.length === 0) return
+    setSavingDraft(true)
+    try {
+      const res = await fetch(`/api/recognition/${batchId}/draft`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ decisions: buildDecisions() }),
+      })
+      const json = await res.json()
+      if (!res.ok || !json.ok) throw new Error(json.error || '暂存失败')
+      toast.info('已暂存，去「我的 → 草稿」可以继续')
+      router.push('/drafts')
+      router.refresh()
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : '暂存失败')
+    } finally {
+      setSavingDraft(false)
+    }
+  }
+
   async function onSubmit() {
     if (items.length === 0) {
       router.push('/inventory')
@@ -205,24 +272,7 @@ export default function ConfirmPage({
     }
     setSubmitting(true)
     try {
-      const decisions = items.map((it) => {
-        const base: any = {
-          recognition_item_id: it.recognition_item_id,
-          action: it.action,
-          final_name: it.name.trim(),
-          final_quantity: Number(it.quantity) || 0,
-          corrected: it.corrected,
-        }
-        if (it.unit) base.final_unit = it.unit
-        if (it.brand) base.final_brand = it.brand
-        if (it.category_id) base.final_category_id = it.category_id
-        if (it.package_quantity) base.final_package_quantity = Number(it.package_quantity)
-        if (it.expiry_date) base.final_expiry_date = it.expiry_date
-        if (it.action === 'merge' && it.duplicate?.matched) {
-          base.matched_item_id = it.duplicate.matched.item_id
-        }
-        return base
-      })
+      const decisions = buildDecisions()
 
       const res = await fetch(`/api/recognition/${batchId}/confirm`, {
         method: 'POST',
@@ -329,6 +379,11 @@ export default function ConfirmPage({
       </Link>
 
       <header>
+        {task.status === 'draft' && (
+          <p className="mb-3 text-micro text-accent-honey inline-flex items-center gap-1">
+            <Save className="h-3 w-3" /> 这是上次暂存的草稿，接着整理
+          </p>
+        )}
         <h1 className="font-semibold text-h1 text-ink-primary">AI 整理好啦</h1>
         <p className="mt-2 text-body text-ink-secondary">
           {task.source_type === 'receipt'
@@ -411,6 +466,16 @@ export default function ConfirmPage({
             disabled={enabledCount === 0}
           >
             {enabledCount === 0 ? '已跳过全部' : `入库 ${enabledCount} 件`}
+          </Btn>
+          <Btn
+            variant="secondary"
+            size="md"
+            block
+            onClick={onSaveDraft}
+            loading={savingDraft}
+            iconLeading={<Save className="h-4 w-4" />}
+          >
+            暂存，改天再整理
           </Btn>
           <button
             type="button"
