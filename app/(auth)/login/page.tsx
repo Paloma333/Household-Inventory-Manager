@@ -93,6 +93,15 @@ export default function LoginPage() {
             带一份小家回来
           </Link>
         </p>
+
+        <p className="mt-5 text-center">
+          <Link
+            href="/landing"
+            className="text-micro text-ink-tertiary underline-offset-2 hover:underline"
+          >
+            作品集 / 项目介绍
+          </Link>
+        </p>
       </div>
     </main>
   )

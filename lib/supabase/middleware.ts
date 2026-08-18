@@ -9,7 +9,7 @@ import { NextResponse, type NextRequest } from 'next/server'
  *   - 未登录访问 (app)/* 或 (auth)/* 之外的受保护路径 → 跳转 /login
  *   - 已登录访问 /login 或 /signup → 跳转 /
  */
-const PUBLIC_PATHS = new Set(['/login', '/signup', '/auth/callback', '/about'])
+const PUBLIC_PATHS = new Set(['/login', '/signup', '/auth/callback', '/about', '/landing'])
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({
@@ -55,7 +55,8 @@ export async function updateSession(request: NextRequest) {
 
   const isPublic =
     PUBLIC_PATHS.has(pathname) ||
-    pathname.startsWith('/auth/')
+    pathname.startsWith('/auth/') ||
+    pathname.startsWith('/r/')
 
   // 已登录访问 login/signup → 跳首页
   if (user && (pathname === '/login' || pathname === '/signup')) {

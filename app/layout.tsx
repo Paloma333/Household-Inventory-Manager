@@ -1,16 +1,56 @@
 import './globals.css'
 import type { Metadata, Viewport } from 'next'
 import { ToastViewport } from '@/components/ui/Toast'
+import { SITE_NAME, SITE_TAGLINE, SITE_URL } from '@/lib/site'
+
+const DEFAULT_TITLE = `${SITE_NAME} — ${SITE_TAGLINE}`
 
 export const metadata: Metadata = {
-  title: '小家',
-  description: '一个让 AI 帮你记住家里有什么的治愈系库存工具',
-  applicationName: '小家',
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: DEFAULT_TITLE,
+    template: `%s · ${SITE_NAME}`,
+  },
+  description: SITE_TAGLINE,
+  applicationName: SITE_NAME,
   manifest: '/manifest.webmanifest',
   appleWebApp: {
     capable: true,
-    title: '小家',
+    title: SITE_NAME,
     statusBarStyle: 'default',
+  },
+  icons: {
+    icon: '/icons/icon-192.svg',
+    apple: '/icons/icon-192.svg',
+  },
+  openGraph: {
+    type: 'website',
+    siteName: SITE_NAME,
+    title: DEFAULT_TITLE,
+    description: SITE_TAGLINE,
+    locale: 'zh_CN',
+    url: '/',
+    images: [
+      {
+        url: '/og.png',
+        width: 1200,
+        height: 630,
+        alt: `${SITE_NAME} — ${SITE_TAGLINE}`,
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: DEFAULT_TITLE,
+    description: SITE_TAGLINE,
+    images: ['/og.png'],
+  },
+  alternates: {
+    canonical: '/',
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 }
 
