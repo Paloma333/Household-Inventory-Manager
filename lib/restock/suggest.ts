@@ -34,6 +34,7 @@ interface ItemRow {
 interface ThresholdRow {
   item_id: string
   threshold: number
+  enabled: boolean
 }
 
 const TITLES: Record<SuggestGroupKey, string> = {
@@ -84,10 +85,12 @@ export async function computeSuggest(
     const itemIds = items.map((i: ItemRow) => i.item_id)
     const { data: ths } = await service
       .from('low_stock_rules')
-      .select('item_id, threshold')
+      .select('item_id, threshold, enabled')
       .in('item_id', itemIds)
     thresholdMap = new Map(
-      ((ths ?? []) as ThresholdRow[]).map((t) => [t.item_id, t.threshold])
+      ((ths ?? []) as ThresholdRow[])
+        .filter((t) => t.enabled) // 关掉的规则不生效，回落默认值
+        .map((t) => [t.item_id, Number(t.threshold)])
     )
   }
 

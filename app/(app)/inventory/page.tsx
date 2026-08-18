@@ -36,7 +36,11 @@ interface Item {
   updated_at: string
   category_id: string | null
   categories: { name: string; parent_id: string | null } | null
+  low_stock_rules: { threshold: number; enabled: boolean } | null
 }
+
+/** 无自定义规则时的默认低库存阈值（与 lib/restock/suggest.ts 保持一致） */
+const DEFAULT_LOW_THRESHOLD = 1
 
 export default function InventoryPage() {
   const [allItems, setAllItems] = React.useState<Item[] | null>(null)
@@ -234,7 +238,10 @@ function CategoryChip({
 }
 
 function ProductCard({ item }: { item: Item }) {
-  const lowStock = item.quantity > 0 && item.quantity <= 1
+  // 阈值联动：有启用中的自定义规则用规则值，否则回落默认 1
+  const rule = item.low_stock_rules
+  const threshold = rule?.enabled ? Number(rule.threshold) : DEFAULT_LOW_THRESHOLD
+  const lowStock = item.quantity > 0 && item.quantity <= threshold
   const expiringSoon = (() => {
     if (!item.expiry_date) return false
     const exp = new Date(item.expiry_date).getTime()
@@ -254,7 +261,7 @@ function ProductCard({ item }: { item: Item }) {
             </p>
             {lowStock && (
               <span
-                title="快用完了"
+                title={`快用完了：剩 ${item.quantity} ≤ ${threshold}${item.unit ?? '个'}`}
                 className="inline-flex items-center gap-0.5 px-1.5 h-5 rounded-xs bg-accent-clay-soft text-accent-clay text-micro"
               >
                 <AlertTriangle className="h-3 w-3" /> 少

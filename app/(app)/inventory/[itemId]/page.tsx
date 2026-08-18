@@ -13,6 +13,9 @@ import {
   Minus,
   Plus,
   ShoppingCart,
+  Bell,
+  ChevronRight,
+  RotateCcw,
 } from 'lucide-react'
 import { Btn } from '@/components/ui/Btn'
 import { Card } from '@/components/ui/Card'
@@ -49,7 +52,11 @@ interface Item {
   updated_at: string
   category_id: string | null
   categories: { name: string; parent_id: string | null } | null
+  low_stock_rules: { threshold: number; enabled: boolean } | null
 }
+
+/** 无自定义规则时的默认低库存阈值（与 lib/restock/suggest.ts 保持一致） */
+const DEFAULT_LOW_THRESHOLD = 1
 
 interface Event {
   event_id: string
@@ -80,6 +87,7 @@ export default function ItemDetailPage({
   const [error, setError] = React.useState<string | null>(null)
   const [events, setEvents] = React.useState<Event[] | null>(null)
   const [editOpen, setEditOpen] = React.useState(false)
+  const [ruleOpen, setRuleOpen] = React.useState(false)
   const [categories, setCategories] = React.useState<CategoryNode[]>([])
 
   const reload = React.useCallback(async () => {
@@ -279,6 +287,25 @@ export default function ItemDetailPage({
         )}
       </section>
 
+      {/* 低库存提醒（PRD §3.5 阈值设置） */}
+      <section className="mt-5 px-2">
+        <button
+          type="button"
+          onClick={() => setRuleOpen(true)}
+          className="w-full text-left"
+        >
+          <Card className="p-4 flex items-center justify-between">
+            <span className="text-body inline-flex items-center gap-2 text-ink-primary">
+              <Bell className="h-4 w-4 text-ink-secondary" /> 低库存提醒
+            </span>
+            <span className="inline-flex items-center gap-1 text-small text-ink-secondary">
+              {thresholdStatus(item)}
+              <ChevronRight className="h-4 w-4" />
+            </span>
+          </Card>
+        </button>
+      </section>
+
       {/* 历史时间轴 */}
       <section className="mt-6 px-2">
         <h2 className="text-h3 font-semibold text-ink-primary">变化历史</h2>
@@ -315,8 +342,26 @@ export default function ItemDetailPage({
           }}
         />
       )}
+
+      {ruleOpen && (
+        <ThresholdRuleSheet
+          item={item}
+          onClose={() => setRuleOpen(false)}
+          onSaved={() => {
+            setRuleOpen(false)
+            void reload()
+          }}
+        />
+      )}
     </div>
   )
+}
+
+function thresholdStatus(item: Item): string {
+  const rule = item.low_stock_rules
+  if (!rule) return `剩 ${DEFAULT_LOW_THRESHOLD}${item.unit ?? '个'}时提醒`
+  if (!rule.enabled) return '已关闭'
+  return `剩 ${Number(rule.threshold)}${item.unit ?? '个'}时提醒`
 }
 
 function BackBar() {
@@ -502,6 +547,138 @@ function EditItemSheet({
         <Btn onClick={save} loading={saving} block size="lg" iconLeading={<CheckCircle2 className="h-4 w-4" />}>
           保存
         </Btn>
+      </div>
+    </Sheet>
+  )
+}
+
+/** 阈值设置 sheet（PRD §3.5）：数字 + 单位（只读展示）+ 启用开关 + 恢复默认 */
+function ThresholdRuleSheet({
+  item,
+  onClose,
+  onSaved,
+}: {
+  item: Item
+  onClose: () => void
+  onSaved: () => void
+}) {
+  const rule = item.low_stock_rules
+  const [threshold, setThreshold] = React.useState(
+    rule ? String(Number(rule.threshold)) : String(DEFAULT_LOW_THRESHOLD)
+  )
+  const [enabled, setEnabled] = React.useState(rule ? rule.enabled : true)
+  const [saving, setSaving] = React.useState(false)
+  const [err, setErr] = React.useState<string | null>(null)
+  const unit = item.unit ?? '个'
+
+  const save = async () => {
+    const t = Number(threshold)
+    if (!Number.isFinite(t) || t <= 0) {
+      setErr('阈值要大于 0')
+      return
+    }
+    setSaving(true)
+    setErr(null)
+    try {
+      const res = await fetch(`/api/items/${item.item_id}/rule`, {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ threshold: t, enabled }),
+      })
+      const json = await res.json()
+      if (!res.ok || json.error) throw new Error(json.error || '保存失败')
+      toast.info(enabled ? '提醒设好啦' : '提醒已关', { durationMs: 1600 })
+      onSaved()
+    } catch (e: any) {
+      setErr(e?.message ?? '保存失败')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const resetDefault = async () => {
+    setSaving(true)
+    setErr(null)
+    try {
+      const res = await fetch(`/api/items/${item.item_id}/rule`, {
+        method: 'DELETE',
+      })
+      const json = await res.json()
+      if (!res.ok || !json.ok) throw new Error(json.error || '恢复失败')
+      toast.info('已恢复默认（剩 1 时提醒）', { durationMs: 1600 })
+      onSaved()
+    } catch (e: any) {
+      setErr(e?.message ?? '恢复失败')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <Sheet open onOpenChange={(o) => !o && onClose()} title="低库存提醒">
+      <div className="flex flex-col gap-4">
+        <p className="text-small text-ink-secondary">
+          剩下不多时提醒你补货，也会出现在补货建议的「快用完」里
+        </p>
+
+        <div className="flex items-end gap-2">
+          <div className="flex-1">
+            <Input
+              kind="number"
+              label="低于多少时提醒"
+              value={threshold}
+              onChange={(e) => setThreshold(e.target.value)}
+              min={0}
+              step={1}
+            />
+          </div>
+          <span className="h-11 px-2 inline-flex items-center text-body text-ink-secondary">
+            {unit}
+          </span>
+        </div>
+
+        {/* 启用开关 */}
+        <button
+          type="button"
+          role="switch"
+          aria-checked={enabled}
+          onClick={() => setEnabled((v) => !v)}
+          className="w-full flex items-center justify-between py-1"
+        >
+          <span className="text-body text-ink-primary">启用提醒</span>
+          <span
+            className={cn(
+              'relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-tap',
+              enabled ? 'bg-accent-sage' : 'bg-ink-tertiary/30'
+            )}
+          >
+            <span
+              className={cn(
+                'inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform duration-tap',
+                enabled ? 'translate-x-5' : 'translate-x-0.5'
+              )}
+            />
+          </span>
+        </button>
+
+        {err && <p className="text-small text-accent-clay">{err}</p>}
+
+        <Btn onClick={save} loading={saving} block size="lg" iconLeading={<CheckCircle2 className="h-4 w-4" />}>
+          保存
+        </Btn>
+
+        {rule && (
+          <Btn
+            variant="ghost"
+            block
+            size="sm"
+            disabled={saving}
+            onClick={resetDefault}
+            iconLeading={<RotateCcw className="h-3.5 w-3.5" />}
+          >
+            恢复默认（剩 1 时提醒）
+          </Btn>
+        )}
       </div>
     </Sheet>
   )

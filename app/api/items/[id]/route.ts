@@ -44,7 +44,8 @@ export async function GET(
       item_id, household_id, canonical_name, brand, quantity, unit,
       package_quantity, expiry_date, created_at, updated_at, deleted_at,
       category_id,
-      categories:category_id ( name, parent_id )
+      categories:category_id ( name, parent_id ),
+      low_stock_rules ( threshold, enabled )
     `
     )
     .eq('item_id', params.id)
