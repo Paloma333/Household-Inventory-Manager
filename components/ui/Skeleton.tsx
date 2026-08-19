@@ -20,7 +20,7 @@ export function Skeleton({
   return (
     <div
       className={cn(
-        'bg-bg-elevated animate-pulse',
+        'bg-wood-soft animate-pulse',
         variant === 'circle' && 'rounded-pill',
         variant === 'rect' && 'rounded-sm',
         variant === 'text' && 'rounded-xs h-3',

@@ -35,7 +35,7 @@ export function EmptyState({
         className
       )}
     >
-      <div className="mb-5 flex h-20 w-20 items-center justify-center text-ink-tertiary">
+      <div className="mb-5 flex h-20 w-20 items-center justify-center text-wood">
         {illustration || <DefaultLineIllustration />}
       </div>
       <h3 className="text-h3 font-semibold text-ink-primary">{title}</h3>
@@ -51,20 +51,27 @@ export function EmptyState({
 }
 
 function DefaultLineIllustration() {
+  /* 动森叶子线稿（2px 暖棕描边） */
   return (
     <svg
       viewBox="0 0 80 80"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.5"
+      strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
       className="h-20 w-20"
       aria-hidden="true"
     >
-      <path d="M16 28 L40 14 L64 28 L64 62 L16 62 Z" />
-      <path d="M28 62 L28 40 L52 40 L52 62" />
-      <circle cx="40" cy="50" r="3" />
+      {/* 叶片 */}
+      <path d="M42 10 C60 18 68 38 62 56 C48 64 28 60 20 46 C13 32 24 14 42 10 Z" />
+      {/* 主叶脉 */}
+      <path d="M42 10 C36 28 38 46 46 60" />
+      {/* 侧叶脉 */}
+      <path d="M38 26 C44 28 50 28 56 26" />
+      <path d="M37 40 C44 43 52 43 59 40" />
+      {/* 叶柄 */}
+      <path d="M46 60 C47 65 45 69 42 72" />
     </svg>
   )
 }

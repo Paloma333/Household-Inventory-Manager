@@ -5,15 +5,19 @@ import { Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 
 /**
- * Btn — PRD §2.1
+ * Btn — PRD §2.1 · 动森版（animal-island-ui 3D 游戏按钮）
  *
  * variant: primary | secondary | ghost | danger | subtle
  * size:    sm(32) | md(40) | lg(48) | xl(56 主 CTA)
  * state:   default | pressed | disabled | loading
  * iconLeading | iconTrailing | iconOnly
  *
- * 触感：按下缩 0.97 + 颜色加深 8%
- * 禁用：opacity 0.45，不要灰色禁用样式（破坏色彩温度）
+ * 动森规则：
+ * - 全部 pill 圆角（50px）
+ * - 3D 像素厚边只给 primary / danger：默认 0 5px 0 0，hover 抬起 -1px 厚边 6px，
+ *   按下 translateY(2px) 厚边收 1px（"按下去"手感）
+ * - secondary 用奶油底 + 暖棕描边 + 柔和浮起阴影
+ * - 禁用：opacity 0.45 + 厚边消失
  */
 
 export type BtnVariant =
@@ -38,22 +42,31 @@ export interface BtnProps
 
 const variantClasses: Record<BtnVariant, string> = {
   primary:
-    'bg-accent-sage text-bg-elevated border border-accent-sage hover:bg-[#6a8462] active:bg-[#60755a]',
+    'bg-accent-sage text-white border-2 border-accent-sage ' +
+    'shadow-[0_5px_0_0_var(--shadow-teal-3d)] ' +
+    'hover:bg-[#3dd4c6] hover:border-[#3dd4c6] hover:-translate-y-px hover:shadow-[0_6px_0_0_var(--shadow-teal-3d)] ' +
+    'active:translate-y-0.5 active:shadow-[0_1px_0_0_var(--shadow-teal-3d)]',
   secondary:
-    'bg-bg-surface text-ink-primary border border-border-hairline hover:bg-bg-elevated',
+    'bg-bg-canvas text-ink-primary border-2 border-border-outline ' +
+    'shadow-[0_2px_4px_0_rgba(61,52,40,0.06)] ' +
+    'hover:-translate-y-px hover:shadow-[0_3px_10px_0_rgba(61,52,40,0.1)] hover:border-accent-sage hover:text-accent-sage ' +
+    'active:translate-y-0 active:shadow-[0_2px_4px_0_rgba(61,52,40,0.06)]',
   ghost:
-    'bg-transparent text-ink-secondary border border-transparent hover:bg-bg-elevated',
+    'bg-transparent text-ink-secondary border-2 border-transparent hover:bg-bg-elevated',
   danger:
-    'bg-accent-clay text-bg-elevated border border-accent-clay hover:bg-[#b56a4d] active:bg-[#a25d42]',
+    'bg-accent-danger text-white border-2 border-accent-danger ' +
+    'shadow-[0_5px_0_0_var(--shadow-danger-3d)] ' +
+    'hover:bg-[#e87878] hover:border-[#e87878] hover:-translate-y-px hover:shadow-[0_6px_0_0_var(--shadow-danger-3d)] ' +
+    'active:translate-y-0.5 active:shadow-[0_1px_0_0_var(--shadow-danger-3d)]',
   subtle:
-    'bg-transparent text-ink-secondary border border-transparent opacity-0 hover:opacity-100 focus-visible:opacity-100',
+    'bg-transparent text-ink-secondary border-2 border-transparent opacity-0 hover:opacity-100 focus-visible:opacity-100',
 }
 
 const sizeClasses: Record<BtnSize, string> = {
-  sm: 'h-8 px-3 text-small gap-1.5',
-  md: 'h-10 px-4 text-body gap-2',
-  lg: 'h-12 px-5 text-h3 gap-2',
-  xl: 'h-14 px-6 text-h3 gap-2.5',
+  sm: 'h-8 px-4 text-small gap-1.5',
+  md: 'h-10 px-5 text-body gap-2',
+  lg: 'h-12 px-6 text-h3 gap-2',
+  xl: 'h-14 px-7 text-h3 gap-2.5',
 }
 
 const iconOnlySize: Record<BtnSize, string> = {
@@ -87,11 +100,10 @@ export const Btn = React.forwardRef<HTMLButtonElement, BtnProps>(
         ref={ref}
         disabled={isDisabled}
         className={cn(
-          'inline-flex items-center justify-center rounded-md',
-          'font-medium select-none whitespace-nowrap',
-          'transition-[transform,background-color,border-color] duration-tap ease-out-quart',
-          'active:scale-[0.97] active:brightness-95',
-          'disabled:opacity-45 disabled:cursor-not-allowed disabled:active:scale-100',
+          'inline-flex items-center justify-center rounded-pill',
+          'font-semibold tracking-[0.02em] select-none whitespace-nowrap',
+          'transition-[transform,box-shadow,background-color,border-color,color] duration-tap ease-out-quart',
+          'disabled:opacity-45 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-y-0',
           iconOnly ? iconOnlySize[size] : sizeClasses[size],
           variantClasses[variant],
           block && 'w-full',

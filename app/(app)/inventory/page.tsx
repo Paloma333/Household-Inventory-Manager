@@ -270,7 +270,7 @@ function ProductCard({ item }: { item: Item }) {
             {expiringSoon && (
               <span
                 title={`${item.expiry_date} 到期`}
-                className="inline-flex items-center gap-0.5 px-1.5 h-5 rounded-xs bg-accent-honey/20 text-accent-honey text-micro"
+                className="inline-flex items-center gap-0.5 px-1.5 h-5 rounded-xs bg-honey-soft text-honey-ink text-micro"
               >
                 <Clock className="h-3 w-3" /> 临期
               </span>

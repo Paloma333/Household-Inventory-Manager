@@ -88,11 +88,12 @@ export function Sheet({
             aria-modal="true"
             className={cn(
               'relative bg-bg-elevated shadow-none overflow-hidden',
+              'border-2 border-border-outline',
               'flex flex-col max-h-[90vh]',
               type === 'sheet' &&
                 'w-full rounded-t-lg sm:rounded-lg sm:max-w-md sm:mx-4',
               type === 'dialog' && 'w-[280px] max-w-[90vw] rounded-lg',
-              type === 'fullscreen' && 'w-full h-full',
+              type === 'fullscreen' && 'w-full h-full border-0',
               type === 'popup' && 'rounded-md',
               className
             )}
@@ -111,12 +112,12 @@ export function Sheet({
                 ? { y: '100%' }
                 : { opacity: 0, scale: 0.94 }
             }
-            transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
             onClick={(e) => e.stopPropagation()}
           >
             {dragHandle && type === 'sheet' && (
-              <div className="flex justify-center pt-2">
-                <div className="h-1 w-8 rounded-pill bg-border-hairline" />
+              <div className="flex justify-center pt-2.5">
+                <div className="h-1.5 w-10 rounded-pill bg-border-outline/50" />
               </div>
             )}
             {(title || showClose) && (

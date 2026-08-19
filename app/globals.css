@@ -1,52 +1,65 @@
 /*
- * 全部 design token 的根定义 — PRD v1.1 §1.1-1.5
- * dark mode 通过 <html data-theme="dark"> 切换；用 :root.dark 也兼容。
- * K3 视觉升级：只动这一处 CSS 变量，组件层不动。
+ * 全部 design token 的根定义 — 动森版（animal-island-ui 设计系统映射）
+ *
+ * 语义变量名保持不变（--bg-canvas / --accent-sage / ...），值映射到
+ * animal-island-ui 的 token（docs/design-system/design-tokens.md）。
+ * 库自带的 --animal-* 运行时变量由 animal-island-ui/style 声明在 :root，
+ * 本文件在其后加载，dark 模式下会覆盖部分 --animal-* 让库组件入夜。
+ *
+ * 映射约定：
+ *   --accent-sage  → animal 薄荷青 #19c8b9（主操作）
+ *   --accent-clay  → NookPhone 暖橙 #e59266（警示：已用完/过期）
+ *   --accent-honey → animal 铃钱黄 #f5c31c（数值高亮/警告）
+ *   --ink-*        → animal 暖棕文字族（绝不纯黑）
  */
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ───────── LXGW WenKai 中文展示字体（可选，加速 Sprint 1 后启用） ───────── */
-/* 生产环境建议自托管。Sprint 0 不开。开发期先用系统 serif fallback。 */
-/*
-@font-face {
-  font-family: 'LXGW WenKai';
-  src: url('https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/LXGWWenKai-Regular.woff2') format('woff2');
-  font-display: swap;
-}
-@font-face {
-  font-family: 'LXGW WenKai';
-  src: url('https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/LXGWWenKai-Bold.woff2') format('woff2');
-  font-weight: 600;
-  font-display: swap;
-}
-*/
-
 :root {
-  /* === 1.1 色彩 — Light === */
-  --bg-canvas: #f6f1e7;
-  --bg-surface: #fffcf4;
-  --bg-elevated: #fffef8;
-  --bg-overlay: rgba(43, 40, 33, 0.45);
+  /* === 色彩 — Light（动森白天 · 奶油羊皮纸） === */
+  --bg-canvas: #f8f8f0; /* animal-bg 奶油底 */
+  --bg-surface: #f7f3df; /* animal-bg-content 内容卡片 */
+  --bg-elevated: #fffbe7; /* animal 输入框底 */
+  --bg-overlay: rgba(61, 52, 40, 0.45);
 
-  --border-hairline: #e8dfcb;
+  --border-hairline: #e8e2d6; /* animal-border-light 细分隔线 */
+  --border-outline: #9f927d; /* 暖棕描边（气泡 / 强调卡片） */
 
-  --ink-primary: #2a2620;
-  --ink-secondary: #6e6655;
-  --ink-tertiary: #a89f8a;
+  --ink-primary: #794f27; /* animal-text 暖棕主文字 */
+  --ink-secondary: #9f927d;
+  --ink-tertiary: #c4b89e;
 
-  --accent-sage: #7a9471;
-  --accent-sage-soft: #e4ecdd;
-  --accent-clay: #c97b5a;
-  --accent-clay-soft: #f4dbc9;
-  --accent-honey: #d5a24e;
+  --accent-sage: #19c8b9; /* 薄荷青 = 主操作（animal-primary） */
+  --accent-sage-soft: #e6f9f6;
+  --accent-clay: #e59266; /* 暖橙 = 警示（NookPhone app-orange） */
+  --accent-clay-soft: #fbe7dc;
+  --accent-honey: #f5c31c; /* 铃钱黄 = 数值高亮 / 低置信度 */
+  --accent-honey-soft: #fdf3d0;
+  --accent-honey-ink: #8a6d1e; /* 黄底上的深金文字（对比度达标） */
+  --accent-danger: #e05a5a; /* 破坏性操作（animal-error） */
 
-  --confidence-low: #d5a24e;
-  --confidence-mid: #a0aeb8;
+  --confidence-low: #f5c31c;
+  --confidence-mid: #9f927d;
 
-  /* === 1.2 字体（流体） === */
+  /* NookPhone 点缀色（分类 chip / 入口卡片 / 装饰） */
+  --nook-teal: #82d5bb;
+  --nook-green: #8ac68a;
+  --nook-blue: #889df0;
+  --nook-yellow: #f7cd67;
+  --nook-pink: #f8a6b2;
+  --wood: #9a835a;
+  --wood-soft: #f0e8d8; /* animal-bg-secondary */
+
+  /* === 3D 游戏按钮厚边（仅 primary / danger 按钮可用） === */
+  --shadow-btn-3d: #bdaea0;
+  --shadow-teal-3d: #11a89b;
+  --shadow-danger-3d: #c94444;
+  --shadow-soft: 0 2px 4px 0 rgba(61, 52, 40, 0.06);
+  --shadow-lift: 0 3px 10px 0 rgba(61, 52, 40, 0.1);
+
+  /* === 字体阶梯（字号不变，字体栈见 tailwind.config.ts） === */
   --font-display: clamp(28px, 6vw, 36px);
   --font-h1: 24px;
   --font-h2: 20px;
@@ -55,7 +68,7 @@
   --font-small: 13px;
   --font-micro: 11px;
 
-  /* === 1.3 间距 === */
+  /* === 间距 === */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -67,44 +80,80 @@
   --space-12: 48px;
   --space-16: 64px;
 
-  /* === 1.3 圆角 — 不要统一 === */
-  --radius-xs: 6px;
-  --radius-sm: 10px;
-  --radius-md: 14px;
-  --radius-lg: 20px;
+  /* === 圆角 — 动森规则：交互元素最小 12px，按钮/输入为 pill === */
+  --radius-xs: 12px;
+  --radius-sm: 16px;
+  --radius-md: 18px;
+  --radius-lg: 24px;
   --radius-pill: 999px;
 
-  /* === 1.4 动效 === */
-  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
-  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-in-out-cubic: cubic-bezier(0.65, 0, 0.35, 1);
-  --dur-tap: 120ms;
-  --dur-enter: 240ms;
-  --dur-leave: 160ms;
-  --dur-page: 320ms;
+  /* === 动效 — animal motion：统一 cubic-bezier(0.4, 0, 0.2, 1)，0.15–0.35s === */
+  --ease-out-quart: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out-expo: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-in-out-cubic: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-tap: 150ms;
+  --dur-enter: 250ms;
+  --dur-leave: 150ms;
+  --dur-page: 350ms;
 }
 
 :root.dark,
 :root[data-theme='dark'] {
-  --bg-canvas: #1b1a17;
-  --bg-surface: #26231d;
-  --bg-elevated: #2e2a22;
-  --bg-overlay: rgba(0, 0, 0, 0.6);
+  /* === 色彩 — Dark（动森夜晚 · 暖棕星空） === */
+  --bg-canvas: #2b2419;
+  --bg-surface: #37301f;
+  --bg-elevated: #443b26;
+  --bg-overlay: rgba(0, 0, 0, 0.55);
 
-  --border-hairline: #3d372c;
+  --border-hairline: #4d4331;
+  --border-outline: #b8a888;
 
-  --ink-primary: #f2ead9;
-  --ink-secondary: #a89f8a;
-  --ink-tertiary: #6e6655;
+  --ink-primary: #f2e6cf;
+  --ink-secondary: #b8a888;
+  --ink-tertiary: #8a7b66;
 
-  --accent-sage: #a5c39b;
-  --accent-sage-soft: #3e4d3a;
-  --accent-clay: #e29b7a;
-  --accent-clay-soft: #5a3c2c;
-  --accent-honey: #e5bc75;
+  --accent-sage: #2fd6c6;
+  --accent-sage-soft: #1f4a44;
+  --accent-clay: #e59266;
+  --accent-clay-soft: #54372a;
+  --accent-honey: #f7d04a;
+  --accent-honey-soft: #4a3d1a;
+  --accent-honey-ink: #f7d04a;
+  --accent-danger: #e87878;
 
-  --confidence-low: #e5bc75;
-  --confidence-mid: #8a98a2;
+  --confidence-low: #f7d04a;
+  --confidence-mid: #8a7b66;
+
+  --nook-teal: #82d5bb;
+  --nook-green: #8ac68a;
+  --nook-blue: #889df0;
+  --nook-yellow: #f7cd67;
+  --nook-pink: #f8a6b2;
+  --wood: #b8a888;
+  --wood-soft: #443b26;
+
+  --shadow-btn-3d: #17130c;
+  --shadow-teal-3d: #0e7d73;
+  --shadow-danger-3d: #a33a3a;
+  --shadow-soft: 0 2px 4px 0 rgba(0, 0, 0, 0.3);
+  --shadow-lift: 0 3px 10px 0 rgba(0, 0, 0, 0.35);
+
+  /* 让 animal-island-ui 组件入夜（覆盖库 :root 默认值） */
+  --animal-bg-color: #37301f;
+  --animal-bg-color-secondary: #443b26;
+  --animal-bg-color-disabled: #322b1c;
+  --animal-text-color: #f2e6cf;
+  --animal-text-color-secondary: #b8a888;
+  --animal-text-color-muted: #f2e6cf;
+  --animal-text-color-disabled: #6e6350;
+  --animal-border-color: #5a4f3a;
+  --animal-border-color-hover: #b8a888;
+  --animal-border-color-light: #4d4331;
+  --animal-mask-bg: rgba(0, 0, 0, 0.55);
+  --animal-primary-color: #2fd6c6;
+  --animal-shadow-sm: 0 2px 4px 0 rgba(0, 0, 0, 0.3);
+  --animal-shadow-base: 0 3px 10px 0 rgba(0, 0, 0, 0.35);
+  --animal-shadow-lg: 0 8px 24px 0 rgba(0, 0, 0, 0.4);
 }
 
 /* ───────── 全局基线 ───────── */
@@ -117,48 +166,71 @@
 
   html {
     -webkit-tap-highlight-color: transparent;
-    /* 1rem = 16px，跟随系统设置 */
     font-size: 16px;
   }
 
   body {
     background: var(--bg-canvas);
     color: var(--ink-primary);
-    font-family: 'PingFang SC', 'Microsoft YaHei', system-ui, -apple-system,
+    font-family:
+      Nunito,
+      'Noto Sans SC',
+      'PingFang SC',
+      'Microsoft YaHei',
+      system-ui,
+      -apple-system,
       sans-serif;
     font-size: var(--font-body);
+    font-weight: 500;
     line-height: 1.7;
-    /* PRD §0.1 不要纯白；增加纸颗粒感 */
+    letter-spacing: 0.01em;
+    /* 奶油纸颗粒肌理（暖调） */
     background-image:
-      radial-gradient(rgba(0, 0, 0, 0.018) 1px, transparent 1px),
-      radial-gradient(rgba(0, 0, 0, 0.012) 1px, transparent 1px);
-    background-size: 24px 24px, 18px 18px;
-    background-position: 0 0, 9px 9px;
+      radial-gradient(rgba(121, 79, 39, 0.03) 1px, transparent 1px),
+      radial-gradient(rgba(121, 79, 39, 0.02) 1px, transparent 1px);
+    background-size:
+      24px 24px,
+      18px 18px;
+    background-position:
+      0 0,
+      9px 9px;
   }
 
-  /* PRD §7 数字字体 */
+  :root.dark body,
+  :root[data-theme='dark'] body {
+    /* 夜晚萤火虫微光 */
+    background-image:
+      radial-gradient(rgba(247, 205, 103, 0.05) 1px, transparent 1px),
+      radial-gradient(rgba(247, 205, 103, 0.03) 1px, transparent 1px);
+  }
+
+  /* 数字：Nunito + tabular-nums */
   .font-num,
   [data-num] {
     font-feature-settings: 'tnum' 1;
     font-variant-numeric: tabular-nums;
-    font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
+    font-family:
+      Nunito,
+      'Noto Sans SC',
+      system-ui,
+      sans-serif;
+    font-weight: 700;
   }
 
-  /* PRD §7 焦点环 */
+  /* 焦点环：动森黄，绝不冷蓝 */
   :focus-visible {
-    outline: 2px solid var(--accent-sage);
-    outline-offset: 4px;
-    border-radius: 2px;
+    outline: 2px solid #ffcc00;
+    outline-offset: 3px;
+    border-radius: 4px;
   }
 
-  /* 不要默认链接颜色破坏气质 */
   a {
     color: inherit;
   }
 }
 
 @layer utilities {
-  /* PRD §2.4 inset divider — 仅在列表项间出现 */
+  /* inset divider — 仅在列表项间出现 */
   .divider-inset {
     border-top: 1px solid var(--border-hairline);
   }
@@ -172,5 +244,19 @@
   /* 安全区内边距（移动端刘海屏） */
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* 动森 3D 按压（仅 primary / danger 按钮使用） */
+  .press-3d {
+    transition:
+      transform var(--dur-tap) var(--ease-out-quart),
+      box-shadow var(--dur-tap) var(--ease-out-quart),
+      background-color var(--dur-tap) var(--ease-out-quart);
+  }
+  .press-3d:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
+  .press-3d:active:not(:disabled) {
+    transform: translateY(2px);
   }
 }

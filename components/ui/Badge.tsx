@@ -32,8 +32,8 @@ const toneClasses: Record<BadgeTone, { solid: string; dot: string }> = {
     dot: 'text-accent-clay',
   },
   honey: {
-    solid: 'bg-accent-honey/20 text-accent-honey',
-    dot: 'text-accent-honey',
+    solid: 'bg-honey-soft text-honey-ink',
+    dot: 'text-honey-ink',
   },
   ink: {
     solid: 'bg-bg-elevated text-ink-secondary',

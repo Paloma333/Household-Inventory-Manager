@@ -3,6 +3,7 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { ArrowRight, AlertTriangle, Clock, Sparkles } from 'lucide-react'
+import { Title } from 'animal-island-ui'
 import { Btn } from '@/components/ui/Btn'
 import { Card } from '@/components/ui/Card'
 import { Skeleton } from '@/components/ui/Skeleton'
@@ -75,12 +76,12 @@ export default function HomePage() {
 
   return (
     <div className="px-6 pt-10 pb-6">
-      {/* 欢迎语 */}
+      {/* 欢迎语 — 动森燕尾缎带 */}
       <header className="enter-up">
-        <h1 className="font-semibold text-h1 text-ink-primary">
+        <Title size="large">
           {greeting}，{data?.householdName ?? '我的小家'}
-        </h1>
-        <div className="mt-2 text-body text-ink-secondary num-roll">
+        </Title>
+        <div className="mt-3 text-body text-ink-secondary num-roll">
           {data === null ? (
             <Skeleton className="h-5 w-48 mt-1" />
           ) : itemCount === 0 ? (

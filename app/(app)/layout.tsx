@@ -47,7 +47,7 @@ function BottomNav() {
           <Link
             href="/add"
             aria-label="添点东西"
-            className="inline-flex items-center justify-center h-14 w-14 rounded-pill bg-accent-sage text-bg-elevated shadow-[0_2px_8px_rgba(122,148,113,0.25)] active:scale-95 transition-transform duration-tap"
+            className="inline-flex items-center justify-center h-14 w-14 rounded-pill bg-accent-sage text-white shadow-[0_4px_0_0_var(--shadow-teal-3d)] hover:-translate-y-0.5 hover:shadow-[0_5px_0_0_var(--shadow-teal-3d)] active:translate-y-0.5 active:shadow-[0_1px_0_0_var(--shadow-teal-3d)] transition-[transform,box-shadow] duration-tap ease-out-quart"
           >
             <Plus className="h-6 w-6" strokeWidth={2.2} />
           </Link>

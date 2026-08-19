@@ -14,6 +14,7 @@ import {
   Share2,
 } from 'lucide-react'
 import { Btn } from '@/components/ui/Btn'
+import { Title } from 'animal-island-ui'
 import { Card } from '@/components/ui/Card'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Skeleton } from '@/components/ui/Skeleton'
@@ -107,8 +108,8 @@ export default function RestockPage() {
   return (
     <div className="px-6 pt-10 pb-6">
       <header>
-        <h1 className="font-semibold text-h1 text-ink-primary">补货</h1>
-        <p className="mt-2 text-body text-ink-secondary">
+        <Title size="large">补货</Title>
+        <p className="mt-3 text-body text-ink-secondary">
           {suggest === null
             ? '加载中…'
             : suggest.total === 0

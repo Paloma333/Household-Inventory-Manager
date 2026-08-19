@@ -76,7 +76,7 @@ interface ItemRow {
 
 const TIER_STYLES: Record<ConfidenceTier, { bg: string; text: string; label: string }> = {
   high: { bg: 'bg-accent-sage-soft', text: 'text-accent-sage', label: '高置信' },
-  mid: { bg: 'bg-accent-honey/20', text: 'text-accent-honey', label: '待确认' },
+  mid: { bg: 'bg-honey-soft', text: 'text-honey-ink', label: '待确认' },
   low: { bg: 'bg-accent-clay-soft', text: 'text-accent-clay', label: '需修正' },
 }
 

@@ -57,8 +57,8 @@ const DESIGN_INTENT = [
   },
   {
     icon: Palette,
-    title: '暖中性 + 一味鼠尾草绿',
-    desc: '米白 / 奶白的暖底，只留一种品牌色 #7A9471。颜色不是装饰，是信息层级。',
+    title: '动森式治愈小岛',
+    desc: '奶油羊皮纸底 + 薄荷青 #19C8B9 + 暖棕文字，按钮有"按下去"的 3D 手感。视觉基于 animal-island-ui 设计系统。',
   },
   {
     icon: Wind,

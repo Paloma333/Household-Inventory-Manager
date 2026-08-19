@@ -74,9 +74,11 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
       title={isDark ? '切换到浅色' : '切换到深色'}
       className={cn(
         'inline-flex items-center justify-center h-9 w-9 rounded-pill',
-        'bg-bg-elevated border border-border-hairline text-ink-secondary',
-        'hover:text-ink-primary active:scale-95',
-        'transition-[transform,color] duration-tap ease-out-quart',
+        'bg-bg-elevated border-2 border-border-outline text-ink-secondary',
+        'shadow-[0_2px_4px_0_rgba(61,52,40,0.06)]',
+        'hover:-translate-y-px hover:text-ink-primary hover:border-nook-yellow',
+        'active:translate-y-0.5 active:shadow-none',
+        'transition-[transform,box-shadow,color,border-color] duration-tap ease-out-quart',
         className
       )}
     >

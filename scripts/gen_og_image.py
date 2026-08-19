@@ -3,11 +3,11 @@
 from PIL import Image, ImageDraw, ImageFont
 
 W, H = 1200, 630
-BG = (246, 241, 231)          # --bg-canvas #F6F1E7
-INK = (42, 38, 32)            # --ink-primary #2A2620
-SECONDARY = (110, 102, 85)    # --ink-secondary #6E6655
-SAGE = (122, 148, 113)        # --accent-sage #7A9471
-SAGE_SOFT = (228, 236, 221)   # --accent-sage-soft #E4ECDD
+BG = (248, 248, 240)          # --bg-canvas #F8F8F0（动森奶油底）
+INK = (121, 79, 39)           # --ink-primary #794F27（暖棕）
+SECONDARY = (159, 146, 125)   # --ink-secondary #9F927D
+SAGE = (25, 200, 185)         # --accent-sage #19C8B9（薄荷青）
+SAGE_SOFT = (230, 249, 246)   # --accent-sage-soft #E6F9F6
 
 img = Image.new("RGB", (W, H), BG)
 d = ImageDraw.Draw(img)

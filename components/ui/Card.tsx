@@ -31,7 +31,8 @@ const kindClasses: Record<CardKind, string> = {
   category: 'bg-bg-surface',
   lowStock: 'bg-accent-clay-soft',
   change: 'bg-bg-surface',
-  empty: 'bg-bg-surface',
+  /* 空状态容器：动森 dashed 虚线卡片 */
+  empty: 'bg-transparent border-dashed border-2 border-border-outline',
 }
 
 export const Card = React.forwardRef<HTMLDivElement, CardProps>(

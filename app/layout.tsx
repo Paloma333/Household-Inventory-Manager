@@ -1,3 +1,6 @@
+/* animal-island-ui 全局样式（字体 + --animal-* 变量 + 组件样式）
+ * 必须先于 globals.css 引入，这样我们的 :root 覆盖才能赢过库默认值 */
+import 'animal-island-ui/style'
 import './globals.css'
 import type { Metadata, Viewport } from 'next'
 import { ToastViewport } from '@/components/ui/Toast'
@@ -59,7 +62,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: '#F6F1E7',
+  themeColor: '#F8F8F0',
 }
 
 export default function RootLayout({

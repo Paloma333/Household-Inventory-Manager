@@ -98,14 +98,14 @@ export function ToastViewport() {
             initial={{ y: 16, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 16, opacity: 0 }}
-            transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.24, ease: [0.4, 0, 0.2, 1] }}
             className={cn(
               'pointer-events-auto rounded-md px-4 py-3 flex items-center gap-3',
-              'border',
+              'border-2 shadow-[0_3px_10px_0_rgba(61,52,40,0.12)]',
               t.tone === 'error' && 'bg-accent-clay-soft border-accent-clay',
               t.tone === 'success' &&
                 'bg-accent-sage-soft border-accent-sage',
-              t.tone === 'info' && 'bg-bg-elevated border-border-hairline'
+              t.tone === 'info' && 'bg-bg-elevated border-border-outline'
             )}
           >
             {t.tone === 'error' ? (

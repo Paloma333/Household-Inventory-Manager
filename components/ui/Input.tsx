@@ -74,22 +74,22 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
                 : undefined
             }
             className={cn(
-              'w-full h-10 px-3 rounded-sm bg-bg-surface text-body',
-              'text-ink-primary placeholder:text-ink-tertiary',
-              'border outline-none transition-colors duration-tap',
+              'w-full h-10 px-4 rounded-pill bg-bg-elevated text-body font-medium',
+              'text-ink-primary placeholder:text-ink-tertiary placeholder:font-normal',
+              'border-2 transition-[border-color,background-color] duration-tap',
               'focus:bg-bg-elevated',
               hasError
                 ? 'border-accent-clay'
                 : aiSuggested
                   ? 'border-accent-honey'
-                  : 'border-border-hairline focus:border-accent-sage',
+                  : 'border-border-hairline hover:border-border-outline focus:border-accent-sage',
               className
             )}
             {...rest}
           />
           {aiSuggested && (
             <span
-              className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex items-center gap-1 px-1.5 h-5 rounded-xs bg-accent-honey/20 text-accent-honey text-micro"
+              className="absolute right-3 top-1/2 -translate-y-1/2 inline-flex items-center gap-1 px-2 h-5 rounded-pill bg-honey-soft text-honey-ink text-micro font-semibold"
               aria-label="AI 建议"
             >
               <Sparkles className="h-3 w-3" />

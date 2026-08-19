@@ -103,10 +103,12 @@ export function Stepper({
       aria-label={delta > 0 ? '增加' : '减少'}
       className={cn(
         'inline-flex items-center justify-center rounded-pill',
-        'bg-bg-elevated border border-border-hairline',
-        'active:scale-[0.94] active:bg-accent-honey/20',
-        'disabled:opacity-45',
-        'transition-[transform,background-color] duration-tap ease-out-quart',
+        'bg-bg-elevated border-2 border-border-outline text-ink-primary',
+        'shadow-[0_2px_4px_0_rgba(61,52,40,0.06)]',
+        'hover:-translate-y-px hover:border-accent-sage hover:text-accent-sage',
+        'active:translate-y-0.5 active:shadow-none active:bg-honey-soft',
+        'disabled:opacity-45 disabled:translate-y-0 disabled:shadow-none',
+        'transition-[transform,box-shadow,background-color,border-color,color] duration-tap ease-out-quart',
         large ? 'h-14 w-14' : 'h-9 w-9'
       )}
     >
