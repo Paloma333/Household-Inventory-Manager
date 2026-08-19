@@ -8,6 +8,14 @@ import { Input } from '@/components/ui/Input'
 import { getBrowserSupabase } from '@/lib/supabase/client'
 
 export default function SignupPage() {
+  return (
+    <React.Suspense fallback={null}>
+      <SignupForm />
+    </React.Suspense>
+  )
+}
+
+function SignupForm() {
   const router = useRouter()
   const search = useSearchParams()
   const next = search.get('next') || '/'

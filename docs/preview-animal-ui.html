@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>小家 · 动森风格 UI 预览</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  /* ===== 与 app/globals.css 同步的动森 token ===== */
+  :root {
+    --bg-canvas: #f8f8f0; --bg-surface: #f7f3df; --bg-elevated: #fffbe7;
+    --bg-overlay: rgba(61,52,40,0.45);
+    --border-hairline: #e8e2d6; --border-outline: #9f927d;
+    --ink-primary: #794f27; --ink-secondary: #9f927d; --ink-tertiary: #c4b89e;
+    --accent-sage: #19c8b9; --accent-sage-soft: #e6f9f6;
+    --accent-clay: #e59266; --accent-clay-soft: #fbe7dc;
+    --accent-honey: #f5c31c; --accent-honey-soft: #fdf3d0; --accent-honey-ink: #8a6d1e;
+    --accent-danger: #e05a5a;
+    --wood: #9a835a; --wood-soft: #f0e8d8;
+    --shadow-teal-3d: #11a89b; --shadow-danger-3d: #c94444; --shadow-btn-3d: #bdaea0;
+    --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  html[data-theme="dark"] {
+    --bg-canvas: #2b2419; --bg-surface: #37301f; --bg-elevated: #443b26;
+    --bg-overlay: rgba(0,0,0,0.55);
+    --border-hairline: #4d4331; --border-outline: #b8a888;
+    --ink-primary: #f2e6cf; --ink-secondary: #b8a888; --ink-tertiary: #8a7b66;
+    --accent-sage: #2fd6c6; --accent-sage-soft: #1f4a44;
+    --accent-clay: #e59266; --accent-clay-soft: #54372a;
+    --accent-honey: #f7d04a; --accent-honey-soft: #4a3d1a; --accent-honey-ink: #f7d04a;
+    --accent-danger: #e87878;
+    --wood: #b8a888; --wood-soft: #443b26;
+    --shadow-teal-3d: #0e7d73; --shadow-danger-3d: #a33a3a; --shadow-btn-3d: #17130c;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: Nunito, 'Noto Sans SC', 'PingFang SC', sans-serif;
+    font-weight: 500; letter-spacing: 0.01em;
+    background: var(--bg-canvas); color: var(--ink-primary);
+    background-image: radial-gradient(rgba(121,79,39,0.03) 1px, transparent 1px);
+    background-size: 24px 24px;
+    transition: background-color 0.25s var(--ease), color 0.25s var(--ease);
+    padding: 32px 16px 80px;
+  }
+  .page { max-width: 400px; margin: 0 auto; }
+  h2.section { font-size: 13px; font-weight: 700; color: var(--ink-secondary); margin: 40px 0 14px; letter-spacing: 0.08em; }
+
+  /* ===== 燕尾缎带 Title（animal-island-ui Title 规格） ===== */
+  .ribbon { --rf: #27d039; --rb: #20992a; --rk: #115017;
+    position: relative; display: inline-flex; height: 2em; padding: 0 1.6em;
+    font-size: 22px; font-weight: 900; letter-spacing: 0.04em;
+    filter: drop-shadow(0 0.08em 0.12em rgba(0,0,0,0.05)); }
+  .ribbon .face { display: inline-flex; align-items: center; background: var(--rf);
+    color: #fff; padding: 0 0.8em; height: 100%; position: relative; z-index: 1;
+    transform: perspective(800px) rotateY(3deg); }
+  .ribbon .tail-l, .ribbon .tail-r { position: absolute; bottom: -0.4em; width: 1.7em; height: 1.7em; background: var(--rb); z-index: 0; }
+  .ribbon .tail-l { left: -0.55em; clip-path: polygon(100% 0%, 100% 100%, 0% 100%, 30% 50%, 0% 0%); }
+  .ribbon .tail-r { right: -0.55em; clip-path: polygon(0% 0%, 100% 0%, 70% 50%, 100% 100%, 0% 100%); }
+  .ribbon .fold-l { position: absolute; left: 0.05em; bottom: -0.4em; width: 0; height: 0; z-index: 2;
+    border-style: solid; border-width: 0 0.95em 0.45em 0; border-color: transparent var(--rk) transparent transparent; }
+  .ribbon .fold-r { position: absolute; right: 0.05em; bottom: -0.4em; width: 0; height: 0; z-index: 2;
+    border-style: solid; border-width: 0 0 0.45em 0.95em; border-color: transparent transparent transparent var(--rk); }
+
+  /* ===== 卡片 ===== */
+  .card { background: var(--bg-surface); border: 1px solid var(--border-hairline);
+    border-radius: 18px; padding: 12px 16px; display: flex; align-items: center; gap: 12px;
+    transition: transform 0.15s var(--ease), background-color 0.15s var(--ease); }
+  .card.hoverable:hover { transform: translateY(-2px); background: var(--bg-elevated); }
+  .card.lowstock { background: var(--accent-clay-soft); border-color: transparent; }
+  .card.honey { background: var(--accent-honey-soft); border-color: transparent; }
+  .card.dashed { background: transparent; border: 2px dashed var(--border-outline); }
+
+  /* ===== 3D 游戏按钮 ===== */
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    height: 44px; padding: 0 22px; border-radius: 999px; border: 2px solid transparent;
+    font-family: inherit; font-size: 15px; font-weight: 700; letter-spacing: 0.02em;
+    cursor: pointer; user-select: none;
+    transition: transform 0.15s var(--ease), box-shadow 0.15s var(--ease), background-color 0.15s var(--ease); }
+  .btn-primary { background: var(--accent-sage); border-color: var(--accent-sage); color: #fff;
+    box-shadow: 0 5px 0 0 var(--shadow-teal-3d); }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 0 0 var(--shadow-teal-3d); }
+  .btn-primary:active { transform: translateY(2px); box-shadow: 0 1px 0 0 var(--shadow-teal-3d); }
+  .btn-danger { background: var(--accent-danger); border-color: var(--accent-danger); color: #fff;
+    box-shadow: 0 5px 0 0 var(--shadow-danger-3d); }
+  .btn-danger:hover { transform: translateY(-1px); box-shadow: 0 6px 0 0 var(--shadow-danger-3d); }
+  .btn-danger:active { transform: translateY(2px); box-shadow: 0 1px 0 0 var(--shadow-danger-3d); }
+  .btn-secondary { background: var(--bg-canvas); border-color: var(--border-outline); color: var(--ink-primary);
+    box-shadow: 0 2px 4px 0 rgba(61,52,40,0.06); }
+  .btn-secondary:hover { transform: translateY(-1px); border-color: var(--accent-sage); color: var(--accent-sage);
+    box-shadow: 0 3px 10px 0 rgba(61,52,40,0.1); }
+  .btn-secondary:active { transform: translateY(0); box-shadow: 0 2px 4px 0 rgba(61,52,40,0.06); }
+
+  /* ===== 徽标 ===== */
+  .badge { display: inline-flex; align-items: center; gap: 4px; height: 20px; padding: 0 8px;
+    border-radius: 999px; font-size: 11px; font-weight: 700; }
+  .badge.clay { background: var(--accent-clay-soft); color: var(--accent-clay); }
+  .badge.honey { background: var(--accent-honey-soft); color: var(--accent-honey-ink); }
+  .badge.sage { background: var(--accent-sage-soft); color: var(--accent-sage); }
+
+  /* ===== 输入 ===== */
+  .input { width: 100%; height: 44px; padding: 0 18px; border-radius: 999px;
+    background: var(--bg-elevated); border: 2px solid var(--border-hairline);
+    font-family: inherit; font-size: 15px; font-weight: 500; color: var(--ink-primary);
+    transition: border-color 0.15s var(--ease); }
+  .input::placeholder { color: var(--ink-tertiary); font-weight: 400; }
+  .input:hover { border-color: var(--border-outline); }
+  .input:focus { outline: 2px solid #ffcc00; outline-offset: 3px; border-color: var(--accent-sage); }
+
+  /* ===== Toast 气泡 ===== */
+  .toast { background: var(--bg-elevated); border: 2px solid var(--border-outline);
+    border-radius: 18px; padding: 12px 16px; display: flex; align-items: center; gap: 10px;
+    box-shadow: 0 3px 10px 0 rgba(61,52,40,0.12); font-size: 14px; }
+  .toast .undo { color: var(--accent-sage); font-weight: 700; }
+
+  /* ===== Stepper ===== */
+  .stepper-btn { width: 44px; height: 44px; border-radius: 999px; display: inline-flex;
+    align-items: center; justify-content: center; background: var(--bg-elevated);
+    border: 2px solid var(--border-outline); color: var(--ink-primary); font-size: 20px; font-weight: 800;
+    cursor: pointer; box-shadow: 0 2px 4px 0 rgba(61,52,40,0.06);
+    transition: all 0.15s var(--ease); }
+  .stepper-btn:hover { transform: translateY(-1px); border-color: var(--accent-sage); color: var(--accent-sage); }
+  .stepper-btn:active { transform: translateY(2px); box-shadow: none; background: var(--accent-honey-soft); }
+
+  /* ===== 底部导航 + FAB ===== */
+  .nav { display: grid; grid-template-columns: repeat(5, 1fr); align-items: end;
+    background: var(--bg-elevated); border: 1px solid var(--border-hairline);
+    border-radius: 24px; padding: 10px 8px 12px; }
+  .nav .item { display: flex; flex-direction: column; align-items: center; gap: 3px;
+    font-size: 11px; color: var(--ink-secondary); }
+  .nav .item.active { color: var(--accent-sage); font-weight: 700; }
+  .fab { width: 56px; height: 56px; border-radius: 999px; background: var(--accent-sage);
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-size: 26px; font-weight: 800; margin: -18px auto 0;
+    box-shadow: 0 4px 0 0 var(--shadow-teal-3d); cursor: pointer;
+    transition: all 0.15s var(--ease); }
+  .fab:hover { transform: translateY(-2px); box-shadow: 0 6px 0 0 var(--shadow-teal-3d); }
+  .fab:active { transform: translateY(2px); box-shadow: 0 1px 0 0 var(--shadow-teal-3d); }
+
+  /* ===== 添加入口图标砖 ===== */
+  .tile { width: 56px; height: 56px; border-radius: 18px; background: var(--bg-canvas);
+    display: grid; place-items: center; font-size: 26px; flex-shrink: 0; }
+
+  .num { font-family: Nunito, 'Noto Sans SC', sans-serif; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .muted { color: var(--ink-secondary); }
+  .tiny { font-size: 12px; }
+  .row { display: flex; align-items: center; gap: 12px; }
+  .dot { width: 36px; height: 36px; border-radius: 999px; display: inline-flex; align-items: center;
+    justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0; }
+  .dot.plus { background: var(--accent-sage-soft); color: var(--accent-sage); }
+  .dot.minus { background: var(--accent-clay-soft); color: var(--accent-clay); }
+
+  .theme-btn { position: fixed; top: 16px; right: 16px; }
+  .leaf { color: var(--wood); }
+</style>
+</head>
+<body>
+<button class="btn btn-secondary theme-btn" style="height:36px;padding:0 14px;font-size:13px" onclick="document.documentElement.dataset.theme=document.documentElement.dataset.theme==='dark'?'':'dark'">切换夜 / 昼</button>
+
+<div class="page">
+
+  <!-- ============ 首页 ============ -->
+  <h2 class="section">首页 / 我的小家</h2>
+  <div style="margin: 6px 0 14px 8px">
+    <span class="ribbon">
+      <span class="tail-l"></span><span class="tail-r"></span>
+      <span class="fold-l"></span><span class="fold-r"></span>
+      <span class="face">早上好，阿橙的小家</span>
+    </span>
+  </div>
+  <p class="muted" style="margin-bottom:16px">家里有 <strong class="num" style="color:var(--ink-primary)">84</strong> 件东西，分 <strong class="num" style="color:var(--ink-primary)">7</strong> 类</p>
+
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <div class="card lowstock hoverable">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent-clay)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;flex-shrink:0"><path d="M12 3 2.5 20h19Z"/><path d="M12 9.5v4.5"/><circle cx="12" cy="17" r="0.6" fill="var(--accent-clay)"/></svg>
+      <div style="flex:1"><div style="font-weight:700">快用完了</div>
+        <div class="tiny muted">5 件东西快见底了，去补一补？</div></div>
+      <span class="muted">→</span>
+    </div>
+    <div class="card honey hoverable">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent-honey-ink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;flex-shrink:0"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5"/><path d="M5 3 3.5 5M19 3l1.5 2"/></svg>
+      <div style="flex:1"><div style="font-weight:700">7 天内有东西过期</div>
+        <div class="tiny muted">2 件快到保质期了</div></div>
+      <span class="muted">→</span>
+    </div>
+  </div>
+
+  <p style="font-weight:700;margin:22px 0 10px">最近变化</p>
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <div class="card"><span class="dot minus">−</span>
+      <div style="flex:1"><div style="font-weight:700">清风原木纯品抽纸</div>
+        <div class="tiny muted">用掉 · 2 小时前</div></div>
+      <span class="tiny muted num">家里 5</span></div>
+    <div class="card"><span class="dot plus">+</span>
+      <div style="flex:1"><div style="font-weight:700">安慕希酸奶</div>
+        <div class="tiny muted">入手 · 昨天 22:10</div></div>
+      <span class="tiny muted num">家里 6</span></div>
+    <div class="card"><span class="dot plus">+</span>
+      <div style="flex:1"><div style="font-weight:700">厨房纸</div>
+        <div class="tiny muted">补货 · 3 天前</div></div>
+      <span class="tiny muted num">家里 2</span></div>
+  </div>
+
+  <!-- ============ 组件 ============ -->
+  <h2 class="section">3D 游戏按钮 / 徽标 / 输入 / Toast</h2>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+    <button class="btn btn-primary">放进小家（3 件）</button>
+    <button class="btn btn-secondary">暂存</button>
+    <button class="btn btn-danger">删除</button>
+  </div>
+  <div style="display:flex;gap:8px;margin-top:16px;align-items:center">
+    <span class="badge clay">少</span>
+    <span class="badge honey">临期</span>
+    <span class="badge sage">AI</span>
+    <span class="badge sage">高置信</span>
+    <span class="badge honey">待确认</span>
+  </div>
+  <div style="margin-top:16px"><input class="input" placeholder="抽纸" /></div>
+  <div style="margin-top:16px" class="toast">
+    <span style="flex:1">已删掉『心相印抽纸』</span><span class="undo">撤销</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:16px;margin-top:20px;justify-content:center">
+    <button class="stepper-btn">−</button>
+    <span class="num" style="font-size:28px;font-weight:900">5</span>
+    <button class="stepper-btn">＋</button>
+  </div>
+
+  <!-- ============ 添加页 ============ -->
+  <h2 class="section">添点东西（四入口）</h2>
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <div class="card hoverable"><div class="tile"><svg style="width:40px;height:auto;display:block" viewBox="0 0 85 66" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect x="5.94434" y="4.92773" width="15.5386" height="16.1112" rx="1.78001" fill="#FF66AD"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M30.585 0H54.7227C56.8954 0.0509226 61.251 1.72121 61.2917 7.99496C61.2917 10.9719 62.9303 12.1182 64.1666 12.4312H70.5935C78.4581 12.4312 84.8336 18.8067 84.8336 26.6712V51.0976C84.8336 58.9622 78.4581 65.3377 70.5935 65.3377H14.2401C6.37551 65.3377 0 58.9622 0 51.0976V26.6712C0 18.8067 6.37549 12.4312 14.2401 12.4312H21.3539C22.5467 12.1169 24.1915 11.0856 24.1915 8.63043C24.1915 4.37225 26.5803 0 30.585 0Z" fill="#4C3C33"/>
+<path d="M47.2051 7.81382H38.5511C36.0335 8.96867 36.4298 12.6061 37.9934 12.6061H48.3218C50.0712 10.9311 48.3218 7.69332 47.2051 7.81382Z" fill="#F9F6E5"/>
+<ellipse cx="42.9035" cy="39.4683" rx="19.7658" ry="19.7652" fill="#F9F6E5"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M57.5033 39.468C57.5033 47.5323 50.9659 54.0697 42.9016 54.0697C34.8372 54.0697 28.2998 47.5323 28.2998 39.468C28.2998 31.4036 34.8372 24.8662 42.9016 24.8662C50.9659 24.8662 57.5033 31.4036 57.5033 39.468ZM53.8936 40.9628C53.8936 42.2078 52.8844 43.2171 51.6394 43.2171C50.3945 43.2171 49.3852 42.2078 49.3852 40.9628C49.3852 39.7179 50.3945 38.7086 51.6394 38.7086C52.8844 38.7086 53.8936 39.7179 53.8936 40.9628ZM43.9772 28.6918C42.996 28.6022 41.2035 28.6918 41.0334 30.4128C40.8416 32.3543 42.5052 32.8329 43.9772 32.8866C44.9658 32.9228 47.5574 33.3182 49.1556 35.9975C49.4861 36.571 50.5237 37.5062 52.0306 36.6586C53.5375 35.811 52.4715 33.7908 51.7502 32.8866C50.94 31.6534 48.251 29.0878 43.9772 28.6918Z" fill="#9364DE"/>
+</svg></div>
+      <div><div style="font-weight:700">拍张小票</div>
+        <div class="tiny muted">拍小票或购物小条，AI 帮你整理</div>
+        <div class="tiny" style="color:var(--ink-tertiary)">预估 30 秒</div></div></div>
+    <div class="card hoverable"><div class="tile"><svg style="width:40px;height:auto;display:block" viewBox="0 0 71 102" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M6.35156 37.6318C7.73431 36.0515 10.642 31.3027 11.2109 24.95C11.7798 18.5972 13.7394 14.4805 14.6481 13.2163C15.8525 11.5407 19.9545 6.49634 25.173 5.80196C27.9297 5.43522 34.7153 5.33636 36.9296 10.7419C37.4507 11.7566 38.6388 13.1771 39.2217 10.7419C39.8045 8.30677 41.1465 3.75719 41.7446 1.7868C41.8872 0.650267 42.699 -1.10802 44.8049 0.951045C45.9827 2.21621 46.5858 2.85586 46.7401 3.01754C47.3749 3.68254 47.7481 4.75898 46.0837 5.80196L41.7446 10.3282C41.6745 10.4642 41.6028 10.5951 41.5335 10.7215C40.8661 11.939 40.4245 12.7446 43.8929 13.8254C49.2551 15.4963 49.6473 18.9449 49.4979 25.5929C49.4922 27.7517 48.5101 32.943 44.6272 36.4376C43.9371 37.0587 43.2631 37.6013 42.6144 38.0741C43.2465 37.1271 43.5855 35.8959 43.5855 34.3764C43.5855 30.2947 40.6459 26.818 36.641 26.818C32.6361 26.818 29.7905 29.4779 29.7905 33.5597C29.7905 37.6415 33.1299 40.4599 37.1348 40.4599C37.6446 40.4599 38.1291 40.4275 38.5865 40.3624C37.4973 40.8019 36.6539 40.9844 36.167 41.0122C32.6149 41.2019 24.0809 41.3374 18.3609 40.3618C12.6409 39.5812 7.97135 38.2166 6.35156 37.6318Z" fill="#409B5E"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M60.0691 40.8215H67.1206C68.7774 40.8215 70.1206 39.4784 70.1206 37.8215V35.5485C70.1206 33.8917 68.7774 32.5485 67.1206 32.5485H56.7823C56.6085 32.5371 56.4354 32.5373 56.264 32.5485H56.0204C54.9415 32.5485 53.9955 33.1182 53.4669 33.9731C53.1679 34.3324 52.9274 34.7512 52.7651 35.2198L49.1837 45.5611H0V58.4033C0 66.1352 6.26801 72.4033 14 72.4033H36.8272C37.9123 72.4033 38.972 72.2953 39.9964 72.0894L38.9452 75.1249L4.09012 75.1246C2.43326 75.1245 1.09009 76.4677 1.09009 78.1246V80.0307C1.09009 81.6876 2.43324 83.0307 4.09009 83.0307H5.73181C4.69681 84.4841 4.09037 86.2483 4.09037 88.1504C4.09037 93.121 8.23174 97.1504 13.3404 97.1504C18.449 97.1504 22.5904 93.121 22.5904 88.1504C22.5904 86.2483 21.9839 84.4841 20.9489 83.0307H27.7318C26.6968 84.4841 26.0904 86.2483 26.0904 88.1504C26.0904 93.121 30.2317 97.1504 35.3404 97.1504C40.449 97.1504 44.5904 93.121 44.5904 88.1504C44.5904 86.2857 44.0075 84.5535 43.0095 83.1168C44.4915 82.9562 45.8202 81.9654 46.3415 80.46L60.0691 40.8215ZM8.31396 50.0458C8.31396 49.4936 8.76168 49.0458 9.31396 49.0458H11.431C11.9833 49.0458 12.431 49.4936 12.431 50.0458V66.0649C12.431 66.6172 11.9833 67.0649 11.431 67.0649H9.31396C8.76168 67.0649 8.31396 66.6172 8.31396 66.0649V50.0458ZM18.781 49.0458C18.2287 49.0458 17.781 49.4936 17.781 50.0458V66.0649C17.781 66.6172 18.2287 67.0649 18.781 67.0649H20.8981C21.4504 67.0649 21.8981 66.6172 21.8981 66.0649V50.0458C21.8981 49.4936 21.4504 49.0458 20.8981 49.0458H18.781ZM27.2481 50.0458C27.2481 49.4936 27.6958 49.0458 28.2481 49.0458H30.3651C30.9174 49.0458 31.3651 49.4936 31.3651 50.0458V66.0649C31.3651 66.6172 30.9174 67.0649 30.3651 67.0649H28.2481C27.6958 67.0649 27.2481 66.6172 27.2481 66.0649V50.0458ZM37.7151 49.0458C37.1628 49.0458 36.7151 49.4936 36.7151 50.0458V66.0649C36.7151 66.6172 37.1628 67.0649 37.7151 67.0649H39.8322C40.3845 67.0649 40.8322 66.6172 40.8322 66.0649V50.0458C40.8322 49.4936 40.3845 49.0458 39.8322 49.0458H37.7151Z" fill="#4A3D37"/>
+<ellipse cx="12.9968" cy="88.6746" rx="2.99679" ry="2.91579" fill="#F5FCEA"/>
+<ellipse cx="35.49" cy="88.6746" rx="2.99679" ry="2.91579" fill="#F5FCEA"/>
+</svg></div>
+      <div><div style="font-weight:700">上传购物截图</div>
+        <div class="tiny muted">京东/淘宝/拼多多订单、购物车都行</div>
+        <div class="tiny" style="color:var(--ink-tertiary)">预估 30 秒</div></div></div>
+    <div class="card hoverable"><div class="tile"><svg style="width:40px;height:auto;display:block" viewBox="0 0 85 82" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M27.5087 38.9923C24.9618 34.3546 22.3453 37.2518 21.3658 38.9923C16.255 43.4778 10.9315 38.9923 10.9315 35.0118V30.3351C4.53766 30.645 1.19308 22.2371 0.320025 17.9944C-0.323001 15.2437 -0.430174 9.03495 4.28535 6.20563C12.6018 1.66158 19.7207 10.7196 22.2406 15.8166C22.6575 16.4113 23.9551 17.2438 25.8095 15.8166C29.3645 5.69809 37.2734 3.94699 40.7836 4.33626C43.2751 4.63827 48.1902 7.55259 47.9184 16.7939C47.6466 26.0352 41.1002 29.6719 37.861 30.3351V35.0118C37.6145 40.9274 29.1097 41.9076 27.5087 38.9923Z" fill="#FBF3E6"/>
+<path d="M11.5498 2.16685C14.4351 -0.604966 20.8286 2.89554 21.6679 13.2077C23.457 16.0769 24.078 16.4901 24.1649 16.338C24.8818 15.4242 26.3155 13.5187 26.3155 13.2077C26.3155 12.819 29.7659 -2.09959 36.053 2.16684" stroke="#493C34" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M34.6192 5.81564C44.2875 8.60287 47.2125 16.4855 47.4665 20.0784C49.8182 12.3264 46.785 7.34049 44.3587 5.02918C42.2409 3.38784 35.6644 3.02842 34.6192 5.81564Z" fill="#493C34"/>
+<path d="M13.2709 6.25774C3.90222 8.95861 1.0678 16.597 0.821675 20.0786C-1.45715 12.5668 1.48205 7.73534 3.83316 5.49565C5.88541 3.90516 12.2581 3.55687 13.2709 6.25774Z" fill="#493C34"/>
+<circle cx="10.9632" cy="17.1263" r="2.95246" fill="#493C34"/>
+<circle cx="36.9671" cy="16.3655" r="2.95246" fill="#493C34"/>
+<circle cx="13.6497" cy="24.8128" r="2.34698" fill="#493C34"/>
+<circle cx="34.6194" cy="24.8128" r="2.34698" fill="#493C34"/>
+<path d="M41.8802 81.8645H28.5928C31.4929 76.9705 38.5775 68.1001 43.7151 71.7698C48.8527 75.4396 44.6325 80.0286 41.8802 81.8645Z" fill="#34ADB6"/>
+<path d="M42.0496 50.7416C36.3225 49.0174 30.0157 50.8956 27.5781 52.0502C31.6322 54.9497 40.5563 60.687 43.82 60.4406C47.8998 60.1327 49.2084 52.897 42.0496 50.7416Z" fill="#34ADB6"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M25.9046 81.8651C34.9588 81.8651 42.6722 77.7818 45.6037 72.0628C46.5677 71.3753 47.6905 72.0106 48.1883 72.4825L51.6853 75.0583C52.9308 76.016 56.0158 77.4855 58.3919 75.7022C60.7679 73.919 59.1001 70.3964 57.9692 68.858C57.469 68.2052 56.7687 66.6389 57.9692 65.5961C59.1697 64.5534 59.3898 61.8927 59.3498 60.6927C59.2921 57.8282 57.7362 57.8326 56.1225 57.8372C56.0579 57.8374 55.9931 57.8376 55.9284 57.8376C53.4667 57.8376 50.106 60.8789 48.9655 62.2444C48.2396 63.1136 47.0348 63.2807 46.21 63.2398C43.8891 56.8027 35.678 52.0449 25.9046 52.0449C14.328 52.0449 4.94336 58.7204 4.94336 66.955C4.94336 75.1896 14.328 81.8651 25.9046 81.8651ZM14.4268 68.7652C16.3943 68.7652 17.9893 67.1702 17.9893 65.2027C17.9893 63.2352 16.3943 61.6402 14.4268 61.6402C12.4593 61.6402 10.8643 63.2352 10.8643 65.2027C10.8643 67.1702 12.4593 68.7652 14.4268 68.7652Z" fill="#493C34"/>
+<path d="M27.2948 65.7744L19.9324 69.453C20.3891 70.5934 19.2259 74.708 18.4434 76.8516C19.9232 78.0103 25.5401 77.7133 26.2694 77.1876C32.4412 72.7395 29.5246 67.7254 27.2948 65.7744Z" fill="#34ADB6"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M78.0397 38.891C82.0376 36.0109 84.5917 31.6184 84.5917 26.6974C84.5917 18.0221 76.6535 10.9893 66.8613 10.9893C57.0691 10.9893 49.131 18.0221 49.131 26.6974C49.131 31.522 51.586 35.8385 55.4495 38.72C55.57 39.2044 55.477 39.7165 54.8477 39.7165C54.7345 39.7165 54.6227 39.6985 54.5035 39.6793C53.818 39.5689 52.8827 39.4182 49.9628 42.4094C48.7189 43.8916 46.9775 47.9255 49.9628 52.2029C52.0476 54.9044 53.9195 55.6173 54.5949 55.6361V49.0152C54.5949 48.1776 56.0934 45.9405 57.5734 47.307V53.7697C58.772 55.4456 61.8895 58.7806 64.7708 58.7144V49.0152C65.447 48.059 67.2629 46.7203 69.1176 49.0152V58.7144C71.3254 58.3158 75.7412 56.7688 75.7412 53.7697V48.3236C75.7412 47.0817 77.3474 46.2041 78.4734 48.3236V55.6361C80.6227 55.7327 84.8869 54.2023 84.749 47.307C84.749 44.1625 83.9118 40.8514 80.5212 39.81C80.1839 39.81 79.8669 39.8226 79.5781 39.8341C78.3606 39.8824 77.6459 39.9108 78.0397 38.891ZM64.0334 38.9938C64.0334 40.7895 62.5776 42.2453 60.7819 42.2453C58.9861 42.2453 57.5304 40.7895 57.5304 38.9938C57.5304 37.198 58.9861 35.7423 60.7819 35.7423C62.5776 35.7423 64.0334 37.198 64.0334 38.9938ZM72.2849 42.2453C74.0806 42.2453 75.5364 40.7895 75.5364 38.9938C75.5364 37.198 74.0806 35.7423 72.2849 35.7423C70.4891 35.7423 69.0334 37.198 69.0334 38.9938C69.0334 40.7895 70.4891 42.2453 72.2849 42.2453Z" fill="#493C34"/>
+</svg></div>
+      <div><div style="font-weight:700">拍照识物</div>
+        <div class="tiny muted">拍冰箱、储物柜、桌面，AI 发现候选</div>
+        <div class="tiny" style="color:var(--ink-tertiary)">预估 60 秒</div></div></div>
+    <div class="card hoverable"><div class="tile"><svg style="width:40px;height:auto;display:block" viewBox="0 0 91 82" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="11.7194" height="29.2229" rx="5.85971" transform="matrix(0.835401 0.549641 -0.539556 0.84195 64.2549 50.3584)" fill="#FAD12B"/>
+<rect x="1.18652" y="1.29688" width="57.27" height="74.7502" rx="8" fill="#F7F3E1"/>
+<rect x="7.08887" y="7.21875" width="45.4652" height="62.9072" rx="3" fill="#E68E6D"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M42.6888 35.5469C30.6862 30.2339 19.8407 34.0493 15.9183 36.6212C13.8852 52.7036 18.98 56.7398 27.1072 60.3539C27.6614 60.5307 28.9816 61.3837 29.8281 63.3814C29.7361 61.4936 31.0417 60.5765 31.7061 60.3539C42.6889 56.3496 46.6113 48.1457 42.6888 35.5469ZM37.1053 41.2027C37.3954 41.7241 37.3952 42.3441 37.395 42.919L37.395 42.9614C37.395 43.1244 37.382 43.3738 37.3668 43.6646L37.3668 43.6647C37.3272 44.4205 37.2731 45.4562 37.395 45.9848C37.6452 47.0696 39.9601 47.9483 40.8106 46.2544C41.491 44.8992 41.0941 41.5758 40.8106 40.0835C39.5653 36.3328 35.86 38.9643 37.1053 41.2027ZM37.626 52.0231C38.7863 52.0231 39.7269 51.0863 39.7269 49.9307C39.7269 48.7751 38.7863 47.8383 37.626 47.8383C36.4657 47.8383 35.5252 48.7751 35.5252 49.9307C35.5252 51.0863 36.4657 52.0231 37.626 52.0231Z" fill="#4C3C33"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M15.0104 34.2474C19.387 31.7516 31.3738 28.0935 44.3081 33.4268C47.3301 29.9873 44.3081 14.2375 30.0067 20.1733C29.2398 18.8106 29.6872 16.6112 30.0067 15.6818C30.211 15.2695 30.4971 14.3835 30.0067 14.1377C29.3937 13.8305 26.7941 13.8305 25.9569 14.9276C26.813 16.1477 28.0035 19.5124 27.9069 19.6726C27.8983 19.687 27.7513 19.6701 27.4942 19.6407C24.8861 19.3419 10.9446 17.7447 15.0104 34.2474ZM17.2549 24.576C17.5476 23.4308 19.682 21.1593 25.8783 21.2342C26.5807 22.0837 26.9027 22.5042 26.9758 22.6084C24.5926 22.65 19.3119 23.1019 17.2549 24.576ZM29.2407 25.608C21.6914 25.119 17.8094 26.9325 16.812 27.9004V26.3665C21.2575 24.2181 26.1818 23.989 28.0882 24.1429C28.1916 24.1687 28.5667 24.4977 29.2407 25.608ZM16.7432 30.899C18.771 29.7217 21.8219 28.1461 31.2604 28.5446L30.1014 27.0166C27.2762 26.9223 20.6493 27.2302 16.7432 29.2161V30.899Z" fill="#FAD12B"/>
+<path d="M85.2042 67.1151C83.0668 58.9215 77.189 59.3095 74.5173 60.5278C70.9837 58.1866 63.1911 53.0321 60.2899 51.143C59.7256 46.616 55.1638 46.7113 54.0351 47.0131C53.546 47.4451 52.1306 47.1931 51.484 47.0131C51.5976 47.1282 51.3557 47.0415 49.4797 45.7743C47.6038 44.5071 48.3475 42.5817 48.9539 41.7773C51.0074 38.5782 55.3014 31.8643 56.0494 30.6012C56.7973 29.3382 58.3693 29.5604 59.0618 29.8294C59.2118 29.9229 59.8305 30.2644 61.1048 30.8819C62.379 31.4994 62.5822 32.7765 62.5245 33.3379C62.9123 38.0814 67.3375 37.982 69.784 37.982C73.0553 40.0977 80.8635 45.3292 85.926 49.3296C91.2509 54.8708 90.2805 63.5056 89.2118 66.5737C88.1431 69.6418 85.6495 68.7845 85.2042 67.1151Z" fill="#4C3C33"/>
+</svg></div>
+      <div><div style="font-weight:700">手动添加</div>
+        <div class="tiny muted">自己填名字和数量</div>
+        <div class="tiny" style="color:var(--ink-tertiary)">立刻开始</div></div></div>
+  </div>
+
+  <!-- ============ 空状态 ============ -->
+  <h2 class="section">空状态（叶子线稿 + dashed 卡）</h2>
+  <div class="card dashed" style="flex-direction:column;text-align:center;padding:32px 20px">
+    <svg class="leaf" viewBox="0 0 80 80" fill="none" stroke="currentColor" stroke-width="2"
+      stroke-linecap="round" stroke-linejoin="round" style="width:72px;height:72px">
+      <path d="M42 10 C60 18 68 38 62 56 C48 64 28 60 20 46 C13 32 24 14 42 10 Z" />
+      <path d="M42 10 C36 28 38 46 46 60" />
+      <path d="M38 26 C44 28 50 28 56 26" />
+      <path d="M37 40 C44 43 52 43 59 40" />
+      <path d="M46 60 C47 65 45 69 42 72" />
+    </svg>
+    <p style="font-weight:700;margin-top:12px">这里还没有东西</p>
+    <p class="tiny muted" style="margin-top:4px">把第一样带回来吧</p>
+    <button class="btn btn-primary" style="margin-top:16px;height:40px">添点东西</button>
+  </div>
+
+  <!-- ============ 底部导航 ============ -->
+  <h2 class="section">底部导航 + 3D FAB</h2>
+  <div class="nav">
+    <div class="item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9.5 21v-6h5v6"/></svg>小家</div>
+    <div class="item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M3 8l9-5 9 5v8l-9 5-9-5Z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/></svg>库存</div>
+    <div><div class="fab">＋</div></div>
+    <div class="item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4.5V3h6v1.5"/><path d="M8.5 10h7M8.5 14h7M8.5 18h4"/></svg>补货</div>
+    <div class="item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M18.5 5.5l-1.7 1.7M7.2 16.8l-1.7 1.7"/></svg>我的</div>
+  </div>
+
+  <p class="tiny muted" style="margin-top:32px;text-align:center">
+    视觉基于 animal-island-ui 设计系统 · 奶油羊皮纸 / 薄荷青 / 暖棕 / 3D 按压<br/>
+    本页为静态预览，实际组件以代码为准
+  </p>
+</div>
+</body>
+</html>

@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // 沙箱环境限制批量删除 .next 时，可用 NEXT_DIST_DIR=.next-verify 换目录构建
+  distDir: process.env.NEXT_DIST_DIR || '.next',
   images: {
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [

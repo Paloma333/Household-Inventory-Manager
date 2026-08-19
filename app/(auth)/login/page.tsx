@@ -9,6 +9,14 @@ import { getBrowserSupabase } from '@/lib/supabase/client'
 import { toast } from '@/components/ui/Toast'
 
 export default function LoginPage() {
+  return (
+    <React.Suspense fallback={null}>
+      <LoginForm />
+    </React.Suspense>
+  )
+}
+
+function LoginForm() {
   const router = useRouter()
   const search = useSearchParams()
   const next = search.get('next') || '/'
