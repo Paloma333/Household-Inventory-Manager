@@ -217,11 +217,20 @@ export async function qwenRecognize(opts: {
   }
 }
 
+/**
+ * 取阿里云百炼 API Key（兼容两个变量名）：
+ * - DASHSCOPE_API_KEY（阿里云官方命名，.env.example 推荐）
+ * - QWEN_API_KEY（旧命名，兼容历史配置）
+ */
+export function getDashScopeKey(): string | undefined {
+  return process.env.DASHSCOPE_API_KEY ?? process.env.QWEN_API_KEY
+}
+
 export const qwenAdapter: AiAdapter = {
   recognize: (opts) => {
-    const key = process.env.QWEN_API_KEY
+    const key = getDashScopeKey()
     if (!key) {
-      throw new Error('QWEN_API_KEY 未配置；getAiAdapter 应已 fallback 到 mock')
+      throw new Error('DASHSCOPE_API_KEY 未配置；getAiAdapter 应已 fallback 到 mock')
     }
     return qwenRecognize({ ...opts, apiKey: key })
   },

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { checkQuota } from '@/lib/ai/quota'
+import { getDashScopeKey } from '@/lib/ai/qwen'
 
 /**
  * /api/admin/quota — 当前 household 的配额使用情况
@@ -45,6 +46,6 @@ export async function GET() {
       tokens_used: quota.monthly_tokens_used,
       tokens_limit: quota.monthly_tokens_limit,
     },
-    mock_mode: !process.env.QWEN_API_KEY || process.env.MOCK_AI === '1',
+    mock_mode: !getDashScopeKey() || process.env.MOCK_AI === '1',
   })
 }

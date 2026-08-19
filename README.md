@@ -40,12 +40,15 @@ npm run dev        # 打开 http://localhost:3000
 NEXT_PUBLIC_SUPABASE_URL=https://你的项目ref.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOi...（anon public）
 SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOi...（service_role secret，注意保密）
-DASHSCOPE_API_KEY=sk-...（可选，不填则 AI 识别走 mock）
+DASHSCOPE_API_KEY=sk-...（可选；不填则 AI 识别走 mock。兼容旧名 QWEN_API_KEY）
 GLM_API_KEY=sk-...（可选，备用视觉模型）
 
 # 部署前把 localhost 改成真实域名（影响 OG / Twitter Card / sitemap）
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
+
+> AI 识别（拍照/小票/截图识物）默认走 mock 假数据，体验不了真实效果。
+> 申请阿里百炼 DashScope 的 API-KEY（模型 `qwen-vl-plus`）后填 `DASHSCOPE_API_KEY` 即切换到真实识别：https://bailian.console.aliyun.com/
 
 ### 数据库迁移
 
