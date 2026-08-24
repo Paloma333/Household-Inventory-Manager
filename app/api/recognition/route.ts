@@ -146,7 +146,7 @@ export async function POST(request: NextRequest) {
       source_type: sourceType,
       image_url: upload.path, // 存原始 path，不是 signed URL
       status: 'processing',
-      model: shouldUseMock() ? 'mock-v0.1' : 'qwen-vl-plus',
+      model: shouldUseMock() ? 'mock-v0.1' : 'qwen3.6-flash',
       // 暂时不写 processing_time_ms
     })
     .select('recognition_id')
@@ -197,6 +197,10 @@ export async function POST(request: NextRequest) {
     predicted_quantity: it.quantity,
     predicted_unit: it.unit,
     predicted_package_quantity: it.package_quantity,
+    predicted_brand: it.brand,
+    predicted_expiry_date: it.expiry_date,
+    category_hint: it.category_hint,
+    restock_hint: it.restock_hint,
     confidence_json: it.confidence,
   }))
 
@@ -204,7 +208,7 @@ export async function POST(request: NextRequest) {
     .from('recognition_items')
     .insert(itemRows)
     .select(
-      'recognition_item_id, raw_name, predicted_name, predicted_quantity, predicted_unit, predicted_package_quantity, confidence_json'
+      'recognition_item_id, raw_name, predicted_name, predicted_quantity, predicted_unit, predicted_package_quantity, predicted_brand, predicted_expiry_date, category_hint, restock_hint, confidence_json'
     )
 
   if (itemsErr || !items) {
@@ -245,18 +249,20 @@ export async function POST(request: NextRequest) {
       const dup = await checkDuplicate({
         householdId: household.household_id,
         candidateName: row.predicted_name ?? '',
-        candidateBrand: extractBrandFromRaw(row.raw_name), // 简化：从 raw 提取
+        candidateBrand: row.predicted_brand ?? null,
       })
       return {
         recognition_item_id: row.recognition_item_id,
         name: row.predicted_name,
-        brand: extractBrandFromRaw(row.raw_name),
+        brand: row.predicted_brand ?? null,
         quantity: row.predicted_quantity,
         unit: row.predicted_unit,
         package_quantity: row.predicted_package_quantity,
+        expiry_date: row.predicted_expiry_date ?? null,
         confidence: row.confidence_json,
         raw_name: row.raw_name,
-        category_hint: extractCategoryFromConfidence(row.confidence_json),
+        category_hint: row.category_hint ?? null,
+        restock_hint: row.restock_hint ?? null,
         duplicate: {
           status: dup.status,
           score: dup.score,
@@ -287,13 +293,4 @@ export async function POST(request: NextRequest) {
   })
 }
 
-/** 把品牌从 raw_name 提取（用 conf 不够稳，留空更简单） */
-function extractBrandFromRaw(raw: string | null | undefined): string | null {
-  if (!raw) return null
-  return null
-}
-
-/** 粗略从 predicted name 推到分类 hint — 实际 UI 端让用户选 */
-function extractCategoryFromConfidence(_conf: unknown): string | null {
-  return null
-}
+/** @deprecated 品牌/分类现在直接由 AI 返回并落库，不再从 raw 文本猜 */

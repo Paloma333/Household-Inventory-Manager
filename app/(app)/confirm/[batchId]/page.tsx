@@ -52,6 +52,8 @@ interface ItemRow {
   category_id: string | null
   category_hint: string | null
   expiry_date: string | null
+  restock_hint: boolean | null
+  restock_alert: boolean
   confidence: {
     name: number
     quantity: number
@@ -74,10 +76,15 @@ interface ItemRow {
   expanded: boolean
 }
 
+/**
+ * 档级徽章：
+ * - high → 不显示文字，只显示绿色打勾 icon（AI 结果可信）
+ * - mid / low → 统一显示「待确认」（不暴露"高置信/需修正"这种术语）
+ */
 const TIER_STYLES: Record<ConfidenceTier, { bg: string; text: string; label: string }> = {
-  high: { bg: 'bg-accent-sage-soft', text: 'text-accent-sage', label: '高置信' },
+  high: { bg: 'bg-accent-sage', text: 'text-white', label: '' },
   mid: { bg: 'bg-honey-soft', text: 'text-honey-ink', label: '待确认' },
-  low: { bg: 'bg-accent-clay-soft', text: 'text-accent-clay', label: '需修正' },
+  low: { bg: 'bg-honey-soft', text: 'text-honey-ink', label: '待确认' },
 }
 
 export default function ConfirmPage({
@@ -136,10 +143,19 @@ export default function ConfirmPage({
           final_package_quantity?: number | null
           final_expiry_date?: string | null
           matched_item_id?: string | null
+          restock_alert?: boolean
         }>
         const draftMap = new Map(
           draftDecisions.map((d) => [d.recognition_item_id, d])
         )
+        // 分类名 → category_id 映射（AI 的 category_hint 自动选中用）
+        const catByName = new Map<string, string>()
+        ;(cData.categories ?? []).forEach((c: CategoryNode) => {
+          catByName.set(c.name.trim(), c.category_id)
+          c.children.forEach((sub) =>
+            catByName.set(sub.name.trim(), sub.category_id)
+          )
+        })
         setItems(
           (data.items ?? []).map((row: any): ItemRow => {
             const tier = computeTier(row.confidence_json ?? row.confidence)
@@ -148,6 +164,9 @@ export default function ConfirmPage({
               row.duplicate?.status === 'strict_match' || row.duplicate?.status === 'fuzzy_match'
                 ? 'merge'
                 : 'keep_separate'
+            // AI 分类 hint → 自动选中对应大类
+            const hint = row.category_hint ?? null
+            const autoCatId = hint ? catByName.get(hint.trim()) ?? null : null
             return {
               recognition_item_id: row.recognition_item_id,
               raw_name: row.raw_name,
@@ -161,9 +180,12 @@ export default function ConfirmPage({
                 row.final_package_quantity ??
                 row.predicted_package_quantity ??
                 null,
-              category_id: saved?.final_category_id ?? row.final_category_id ?? null,
-              category_hint: null,
+              category_id:
+                saved?.final_category_id ?? row.final_category_id ?? autoCatId,
+              category_hint: hint,
               expiry_date: saved?.final_expiry_date ?? row.predicted_expiry_date ?? null,
+              restock_hint: row.restock_hint ?? null,
+              restock_alert: saved?.restock_alert ?? row.restock_hint ?? false,
               confidence: row.confidence_json ?? row.confidence,
               duplicate: row.duplicate,
               action: saved?.action ?? defaultAction,
@@ -234,6 +256,8 @@ export default function ConfirmPage({
       if (it.category_id) base.final_category_id = it.category_id
       if (it.package_quantity) base.final_package_quantity = Number(it.package_quantity)
       if (it.expiry_date) base.final_expiry_date = it.expiry_date
+      // 快用完提醒开关（勾选才建 low_stock_rule）
+      base.restock_alert = it.restock_alert
       if (it.action === 'merge' && it.duplicate?.matched) {
         base.matched_item_id = it.duplicate.matched.item_id
       }
@@ -366,7 +390,9 @@ export default function ConfirmPage({
     )
   }
 
-  const lowCount = items.filter((it) => computeTier(it.confidence) === 'low').length
+  const pendingCount = items.filter(
+    (it) => it.action !== 'skip' && computeTier(it.confidence) !== 'high'
+  ).length
   const enabledCount = items.filter((it) => it.action !== 'skip').length
 
   return (
@@ -416,7 +442,8 @@ export default function ConfirmPage({
         )}
         <div className="flex-1 min-w-0">
           <p className="text-small text-ink-primary">
-            {items.length} 件商品 · {lowCount > 0 ? `${lowCount} 件需要修正` : '看起来都对'}
+            {items.length} 件商品 ·{' '}
+            {pendingCount > 0 ? `${pendingCount} 件待确认` : '看起来都对'}
           </p>
           <p className="text-micro text-ink-tertiary mt-0.5">
             模型：{task.model} ·{' '}
@@ -510,9 +537,9 @@ function ItemCard({
       {/* 头部：分档徽章 + 删除 */}
       <div className="flex items-center justify-between gap-2">
         <span
-          className={`px-2 h-6 inline-flex items-center rounded-xs ${sty.bg} ${sty.text} text-micro font-medium`}
+          className={`px-2 h-6 inline-flex items-center gap-1 rounded-xs ${sty.bg} ${sty.text} text-micro font-medium`}
         >
-          {sty.label}
+          {tier === 'high' ? <Check className="h-3.5 w-3.5" /> : sty.label}
         </span>
         <button
           type="button"
@@ -533,7 +560,7 @@ function ItemCard({
             <Input
               value={item.name}
               onChange={(e) => onChange({ name: e.target.value })}
-              label={`叫什么${fieldTier(item.confidence.name) === 'low' ? '（建议确认）' : ''}`}
+              label={`物品名称${fieldTier(item.confidence.name) === 'low' ? '（建议确认）' : ''}`}
               placeholder="商品名字"
               autoComplete="off"
               aiSuggested={fieldTier(item.confidence.name) !== 'high'}
@@ -551,7 +578,7 @@ function ItemCard({
               kind="number"
               value={String(item.quantity)}
               onChange={(e) => onChange({ quantity: Number(e.target.value) || 0 })}
-              label="多少"
+              label="数量"
             />
             <Input
               value={item.unit ?? ''}
@@ -560,6 +587,50 @@ function ItemCard({
               placeholder="包/瓶/提"
             />
           </div>
+
+          {/* 分类（AI 已自动选好，可一键改） */}
+          <div className="mt-3">
+            <label className="text-small text-ink-secondary">
+              分类{item.category_hint ? '（AI 已自动选好）' : ''}
+            </label>
+            <CategoryPicker
+              cats={cats}
+              value={item.category_id ?? ''}
+              hint={item.category_hint ?? undefined}
+              onChange={(v) => onChange({ category_id: v || null })}
+            />
+          </div>
+
+          {/* 快用完时提醒我（AI 会根据易耗品判断预勾选） */}
+          <button
+            type="button"
+            role="switch"
+            aria-checked={item.restock_alert}
+            onClick={() => onChange({ restock_alert: !item.restock_alert })}
+            className="mt-3 w-full flex items-center justify-between rounded-md border border-border-hairline bg-bg-canvas px-3 py-2.5"
+          >
+            <span className="text-left">
+              <span className="block text-small text-ink-primary">快用完时提醒我</span>
+              <span className="block text-micro text-ink-tertiary">
+                {item.restock_hint
+                  ? 'AI 觉得是易耗品，已帮你勾上'
+                  : '勾上后剩得不多时会提醒补货'}
+              </span>
+            </span>
+            <span
+              className={
+                'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors duration-tap ' +
+                (item.restock_alert ? 'bg-accent-sage' : 'bg-ink-tertiary/30')
+              }
+            >
+              <span
+                className={
+                  'inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform duration-tap ' +
+                  (item.restock_alert ? 'translate-x-5' : 'translate-x-0.5')
+                }
+              />
+            </span>
+          </button>
 
           {/* 品牌 + 包装 + 过期（折叠） */}
           {item.expanded && (
@@ -588,15 +659,6 @@ function ItemCard({
                     onChange({ expiry_date: e.target.value || null })
                   }
                   label="过期日"
-                />
-              </div>
-              <div>
-                <label className="text-small text-ink-secondary">分类</label>
-                <CategoryPicker
-                  cats={cats}
-                  value={item.category_id ?? ''}
-                  hint={item.category_hint ?? undefined}
-                  onChange={(v) => onChange({ category_id: v || null })}
                 />
               </div>
             </div>
@@ -759,18 +821,20 @@ function CategoryPicker({
             onClick={() => onChange(active ? '' : c.id)}
             aria-pressed={active}
             className={
-              'px-2.5 h-8 rounded-pill text-small border transition-colors duration-tap ' +
+              'px-2.5 h-8 inline-flex items-center gap-1 rounded-pill text-small border transition-colors duration-tap ' +
               (active
-                ? 'bg-accent-sage text-bg-elevated border-accent-sage'
-                : c.depth === 0
-                  ? 'bg-bg-canvas text-ink-primary border-border-hairline hover:bg-bg-elevated'
-                  : 'bg-bg-surface text-ink-secondary border-border-hairline hover:bg-bg-elevated')
+                ? 'bg-accent-sage text-white border-accent-sage shadow-sm'
+                : 'bg-bg-canvas text-ink-primary border-border-hairline hover:bg-bg-elevated')
             }
           >
+            {active && <Check className="h-3.5 w-3.5" />}
             {c.label}
           </button>
         )
       })}
+      {hint && !value && (
+        <p className="w-full text-micro text-ink-tertiary">AI 觉得是：{hint}</p>
+      )}
     </div>
   )
 }

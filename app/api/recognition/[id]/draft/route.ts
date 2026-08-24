@@ -28,6 +28,7 @@ const DraftDecisionSchema = z.object({
     .nullable()
     .optional(),
   matched_item_id: z.string().uuid().nullable().optional(),
+  restock_alert: z.boolean().optional(),
   corrected: z.boolean().optional(),
 })
 

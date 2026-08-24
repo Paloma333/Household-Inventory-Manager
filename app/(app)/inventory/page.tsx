@@ -14,16 +14,11 @@ import { cn } from '@/lib/utils/cn'
 /**
  * /inventory — PRD §3.4 库存列表
  *
- * Sprint 1 实现：
- *   - 全部 items
+ *   - 方块卡片网格（动森风格 tile），按品类分组展示
  *   - 搜索框（debounce 250ms；按 canonical_name 模糊匹配）
  *   - 分类 chips 行：全部 + 各分类（带计数）
- *   - ProductCard 列表
- *   - 空 / 加载 / 错误三态
- *
- * 不做：
- *   - 字母索引（Sprint 2 视情况）
- *   - 排序 Sheet（默认按更新时间 desc；Sprint 3 接）
+ *   - 「少」徽章：只看用户勾了「快用完时提醒我」的（low_stock_rules.enabled），
+ *     不再默认「数量=1 就提示少」
  */
 
 interface Item {
@@ -39,8 +34,22 @@ interface Item {
   low_stock_rules: { threshold: number; enabled: boolean } | null
 }
 
-/** 无自定义规则时的默认低库存阈值（与 lib/restock/suggest.ts 保持一致） */
-const DEFAULT_LOW_THRESHOLD = 1
+/** 品类 → tile 上的 emoji（跟 0007 迁移后的 8 大类对齐） */
+const CATEGORY_EMOJI: Record<string, string> = {
+  食品饮料: '🍜',
+  生鲜果蔬: '🥬',
+  个护美妆: '🧴',
+  家居清洁: '🧺',
+  健康药品: '💊',
+  衣物配件: '🧣',
+  数码电器: '🔌',
+  其他: '📦',
+}
+
+function categoryEmoji(name: string | null | undefined): string {
+  if (!name) return '📦'
+  return CATEGORY_EMOJI[name] ?? '📦'
+}
 
 export default function InventoryPage() {
   const [allItems, setAllItems] = React.useState<Item[] | null>(null)
@@ -111,6 +120,29 @@ export default function InventoryPage() {
     })
     return Array.from(map.values()).sort((a, b) => b.count - a.count)
   }, [allItems])
+
+  // 按品类分组（固定大类顺序优先，未分类排最后）
+  const grouped = React.useMemo(() => {
+    const groups = new Map<string, { emoji: string; items: Item[] }>()
+    filtered.forEach((it) => {
+      const name = it.categories?.name ?? '未分类'
+      if (!groups.has(name)) {
+        groups.set(name, { emoji: categoryEmoji(it.categories?.name), items: [] })
+      }
+      groups.get(name)!.items.push(it)
+    })
+    const order = Object.keys(CATEGORY_EMOJI)
+    return Array.from(groups.entries())
+      .map(([name, g]) => ({ name, ...g }))
+      .sort((a, b) => {
+        const ai = order.indexOf(a.name)
+        const bi = order.indexOf(b.name)
+        if (ai === -1 && bi === -1) return b.items.length - a.items.length
+        if (ai === -1) return 1
+        if (bi === -1) return -1
+        return ai - bi
+      })
+  }, [filtered])
 
   return (
     <div className="px-4 pt-6 pb-24 sm:px-6">
@@ -198,13 +230,29 @@ export default function InventoryPage() {
             }
           />
         ) : (
-          <ul className="flex flex-col gap-3">
-            {filtered.map((it) => (
-              <li key={it.item_id}>
-                <ProductCard item={it} />
-              </li>
+          <div className="flex flex-col gap-6">
+            {grouped.map((g) => (
+              <section key={g.name}>
+                <div className="flex items-center gap-2 px-1">
+                  <span className="text-h3 leading-none" aria-hidden>
+                    {g.emoji}
+                  </span>
+                  <h2 className="text-small font-semibold text-ink-primary">
+                    {g.name}
+                  </h2>
+                  <span className="text-micro text-ink-tertiary">
+                    {g.items.length}
+                  </span>
+                  <span className="flex-1 h-px bg-border-hairline ml-1" />
+                </div>
+                <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {g.items.map((it) => (
+                    <ProductTile key={it.item_id} item={it} />
+                  ))}
+                </div>
+              </section>
             ))}
-          </ul>
+          </div>
         )}
       </div>
     </div>
@@ -237,11 +285,12 @@ function CategoryChip({
   )
 }
 
-function ProductCard({ item }: { item: Item }) {
-  // 阈值联动：有启用中的自定义规则用规则值，否则回落默认 1
+function ProductTile({ item }: { item: Item }) {
+  // 「少」只看用户主动勾了「快用完时提醒我」的（enabled 规则），
+  // 数量=1 不再自动提示
   const rule = item.low_stock_rules
-  const threshold = rule?.enabled ? Number(rule.threshold) : DEFAULT_LOW_THRESHOLD
-  const lowStock = item.quantity > 0 && item.quantity <= threshold
+  const lowStock =
+    !!rule?.enabled && item.quantity > 0 && item.quantity <= Number(rule.threshold)
   const expiringSoon = (() => {
     if (!item.expiry_date) return false
     const exp = new Date(item.expiry_date).getTime()
@@ -249,44 +298,57 @@ function ProductCard({ item }: { item: Item }) {
     return exp >= Date.now() && exp <= sevenDaysLater
   })()
 
-  const categoryName = item.categories?.name ?? null
-
   return (
     <Link href={`/inventory/${item.item_id}`} className="block">
-      <Card className="px-4 py-3 flex items-center gap-3 active:scale-[0.99] active:bg-bg-elevated cursor-pointer">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <p className="text-body font-semibold text-ink-primary truncate">
-              {item.canonical_name}
-            </p>
-            {lowStock && (
-              <span
-                title={`快用完了：剩 ${item.quantity} ≤ ${threshold}${item.unit ?? '个'}`}
-                className="inline-flex items-center gap-0.5 px-1.5 h-5 rounded-xs bg-accent-clay-soft text-accent-clay text-micro"
-              >
-                <AlertTriangle className="h-3 w-3" /> 少
-              </span>
-            )}
-            {expiringSoon && (
-              <span
-                title={`${item.expiry_date} 到期`}
-                className="inline-flex items-center gap-0.5 px-1.5 h-5 rounded-xs bg-honey-soft text-honey-ink text-micro"
-              >
-                <Clock className="h-3 w-3" /> 临期
-              </span>
-            )}
-          </div>
-          <p className="text-micro text-ink-secondary mt-1 truncate">
-            {categoryName ?? '未分类'}
-            {item.brand ? ` · ${item.brand}` : ''}
+      <Card
+        className={cn(
+          'relative p-3 h-full flex flex-col active:scale-[0.98] transition-transform duration-tap cursor-pointer overflow-hidden',
+          lowStock && 'border-accent-clay/50'
+        )}
+      >
+        {/* 品类角标 */}
+        <span
+          className="absolute right-2 top-2 text-body leading-none opacity-80"
+          aria-hidden
+        >
+          {categoryEmoji(item.categories?.name)}
+        </span>
+
+        {/* 名称 + 徽章 */}
+        <div className="pr-6">
+          <p className="text-small font-semibold text-ink-primary break-words line-clamp-2">
+            {item.canonical_name}
           </p>
         </div>
-        <div className="text-right shrink-0">
-          <p className="text-h3 font-num font-semibold text-ink-primary">
-            {Math.round(item.quantity * 100) / 100}
+        <div className="mt-1.5 flex flex-wrap gap-1">
+          {lowStock && (
+            <span
+              title={`快用完了：剩 ${item.quantity} ≤ ${rule!.threshold}${item.unit ?? '个'}`}
+              className="inline-flex items-center gap-0.5 px-1.5 h-5 rounded-xs bg-accent-clay-soft text-accent-clay text-micro"
+            >
+              <AlertTriangle className="h-3 w-3" /> 需补货
+            </span>
+          )}
+          {expiringSoon && (
+            <span
+              title={`${item.expiry_date} 到期`}
+              className="inline-flex items-center gap-0.5 px-1.5 h-5 rounded-xs bg-honey-soft text-honey-ink text-micro"
+            >
+              <Clock className="h-3 w-3" /> 临期
+            </span>
+          )}
+        </div>
+
+        {/* 数量：撑到底部 */}
+        <div className="mt-auto pt-3 flex items-end justify-between">
+          <p className="text-micro text-ink-tertiary truncate">
+            {item.brand ?? ''}
           </p>
-          <p className="text-micro text-ink-secondary">
-            {item.unit ?? '个'}
+          <p className="text-h2 font-num font-semibold text-accent-sage leading-none">
+            {Math.round(item.quantity * 100) / 100}
+            <span className="text-micro text-ink-secondary font-normal ml-0.5">
+              {item.unit ?? '个'}
+            </span>
           </p>
         </div>
       </Card>

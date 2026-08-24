@@ -70,7 +70,7 @@ const DESIGN_INTENT = [
 const STACK = [
   'Next.js 14 (App Router) + TypeScript + Tailwind',
   'Supabase：Postgres · Auth · Storage · RLS 行级安全',
-  'Qwen-VL-Plus 视觉识别，本地 mock 兜底，三档置信度确认',
+  'Qwen3.6-Flash 视觉识别，本地 mock 兜底，三档置信度确认',
   '19 个 API 路由 · PWA 可加主屏幕 · 设计系统展示页',
 ]
 

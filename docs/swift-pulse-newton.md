@@ -1,7 +1,7 @@
 # 家庭库存管理 Web App · 全栈开发步骤方案（v2）
 
 > **基础**：以 `PRD_v1.1_UI交互规格.docx` 为唯一事实来源（功能 / 数据模型 / 页面 / 状态机均已对齐）。
-> **栈**：Next.js 14（App Router）+ React 18 + TypeScript + Tailwind · Next.js API Routes（Serverless Function）· Supabase（Postgres + Auth + Storage）· Vercel 一键部署 · Qwen-VL-Plus（阿里百炼）/ GLM-4V（智谱）做视觉识别。
+> **栈**：Next.js 14（App Router）+ React 18 + TypeScript + Tailwind · Next.js API Routes（Serverless Function）· Supabase（Postgres + Auth + Storage）· Vercel 一键部署 · Qwen3.6-Flash（阿里百炼）/ GLM-4V（智谱）做视觉识别。
 > **形态**：纯 Web App（响应式，移动端 / 桌面 / PWA 全适配）。**不再做小程序**——作品集场景下 Web 的可达性、SEO、调试速度、部署便利性全面碾压小程序，且 PRD v1.0 中"Web 为海外/跨平台入口"的部分升级为**主形态**。
 > **节奏**：目标 MVP 3-4 周上线，6 个 Sprint（含 1 周缓冲）。
 > **变更**：相比 v1 计划（小程序 + CloudBase + Taro），MVP 时间从 6-8 周压缩到 3-4 周，技术债显著减少。
@@ -53,7 +53,7 @@
 | 数据库 | Supabase Postgres | 关系型，与 PRD v1.0 数据模型一致；带 RLS |
 | 鉴权 | Supabase Auth（邮箱密码 + Google OAuth + GitHub OAuth） | 5 分钟接入，后续可加微信 OAuth |
 | 对象存储 | Supabase Storage（短期签名 URL） | 用户上传图片、购物清单导出图 |
-| AI 视觉 | Qwen-VL-Plus（阿里百炼）→ 备 GLM-4V（智谱） | 中文小票/网购截图识别率高；留 fallback |
+| AI 视觉 | Qwen3.6-Flash（阿里百炼）→ 备 GLM-4V（智谱） | 中文小票/网购截图识别率高；留 fallback |
 | 部署 | Vercel（一键）+ Supabase（云托管） | git push 自动部署，preview URL 看 PR |
 | 监控 | Vercel Analytics（基础）+ Sentry（错误聚合，可选） | 作品集项目 MVP 阶段 Vercel 自带足够 |
 | 埋点 | Supabase `events` 表（PRD v1.0 已定义）+ 简易 SQL 看板 | 不上 GA / 神策 |
@@ -114,7 +114,7 @@ him/                              # Him = Household Inventory Manager
 │   └── layout/                   # TopBar / BottomNav / FAB / Sheet
 ├── lib/                          # 业务逻辑层（前后端共用、纯 TS 无依赖 React）
 │   ├── supabase/                 # Supabase 客户端（client + server）
-│   ├── ai/                       # Qwen-VL 适配器、prompt 模板、schema 校验
+│   ├── ai/                       # Qwen3.6-Flash 适配器、prompt 模板、schema 校验
 │   ├── inventory/                # 数量计算、标准化名、事件写入
 │   ├── analytics/                # 埋点 helper
 │   └── utils/                    # 通用工具
@@ -188,7 +188,7 @@ him/                              # Him = Household Inventory Manager
 **目标**：拍小票 / 截图 → AI 识别 → 人工确认 → 入库，跑通**AI 闭环**。
 
 任务清单：
-- [ ] 阿里百炼 Qwen-VL-Plus 接入：封装 `/api/recognition` route
+- [ ] 阿里百炼 Qwen3.6-Flash 接入：封装 `/api/recognition` route
 - [ ] 输出 schema 严格对齐 PRD §9.2（含 `confidence` 三档）
 - [ ] 图片上传：Supabase Storage + 短期签名 URL（PRD §15 隐私要求）
 - [ ] AI 确认页完整版（PRD §3.3）：三档置信度视觉 / 字段行可编辑 / 主 CTA 校验门 / 暂存
@@ -202,7 +202,7 @@ him/                              # Him = Household Inventory Manager
 **验收**：用手机拍一张真实超市小票，能识别出 ≥ 70% 的商品；触发重复购买时弹出 3 分支弹窗。
 
 **风险预案**：
-- 若 Qwen-VL 准确率不达标 → 启用 GLM-4V 作为 fallback，API route 内部做路由
+- 若 Qwen3.6-Flash 准确率不达标 → 启用 GLM-4V 作为 fallback，API route 内部做路由
 - 若 Serverless 冷启动超过 3 秒 → 前端用 PRD §2.6 的"3 句轮换文案"兜底
 
 ---
@@ -286,7 +286,7 @@ Sprint 0  ──→  Sprint 1  ──→  Sprint 2  ──→  Sprint 3  ──�
 
 | 风险 | 影响 | 对策 |
 |------|------|------|
-| Qwen-VL 准确率低 | AI 闭环失败 | 提前用 20 张真实小票做 PoC（Day 8-10）；不达标切 GLM-4V |
+| Qwen3.6-Flash 准确率低 | AI 闭环失败 | 提前用 20 张真实小票做 PoC（Day 8-10）；不达标切 GLM-4V |
 | Vercel Serverless 冷启动 | 用户感知慢 | 登录后预热一个无副作用 API；前端 3 句轮换文案 + 骨架屏 |
 | PRD v1.1 动效细节实现成本高 | 上线延期 | 动效用 Framer Motion 实现；Lottie 仅在"成功过渡页"用 1 次 |
 | 多模型产出风格不一致 | 设计混乱 | 所有 AI 产出物（代码 / 图标 / 文案）必须先过我（UI Designer）的 audit 才能合入 |
@@ -329,7 +329,7 @@ Sprint 0  ──→  Sprint 1  ──→  Sprint 2  ──→  Sprint 3  ──�
 | `app/(app)/restock/page.tsx` | 补货清单（PRD §3.7） |
 | `app/(app)/settings/page.tsx` | 我的（PRD §3.8） |
 | `app/api/*/route.ts` | API Routes |
-| `lib/ai/qwen.ts` | Qwen-VL 适配器 |
+| `lib/ai/qwen.ts` | Qwen3.6-Flash 适配器 |
 | `supabase/migrations/*` | SQL 迁移 |
 | `tailwind.config.ts` | 设计 token → Tailwind theme |
 | `components/ui/*` | 基础组件（PRD §2） |

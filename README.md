@@ -15,7 +15,7 @@
 已完成
 ├── [x] Sprint 0 基础设施：设计 tokens / 基础组件库 / Supabase 12 张表 + RLS / Auth / 埋点 / PWA
 ├── [x] Sprint 1 手动闭环：首页仪表盘 / 库存列表(搜索+分类) / 商品详情(+/- 与历史时间轴) / 手动添加表单
-├── [x] Sprint 2 AI 闭环：Qwen-VL 识别(含 mock 兜底) / 三档置信度确认页 / 重复购买三分支 / 配额限制
+├── [x] Sprint 2 AI 闭环：Qwen3.6-Flash 识别(含 mock 兜底) / 三档置信度确认页 / 重复购买三分支 / 配额限制
 ├── [x] Sprint 3 补货闭环：补货建议三分组 / 购物清单(勾选/自定义/结算回写) / 公开分享链接(token 可作废)
 ├── [x] Sprint 4 数据闭环：小家名编辑 / 草稿 / 回收站+30天懒清理 / 导出 CSV·JSON / 低库存阈值设置 / 关于与反馈
 └── [x] 设计系统展示页 /design、作品集 landing 页 /landing、SEO（sitemap/robots/OG）
@@ -48,7 +48,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
 > AI 识别（拍照/小票/截图识物）默认走 mock 假数据，体验不了真实效果。
-> 申请阿里百炼 DashScope 的 API-KEY（模型 `qwen-vl-plus`）后填 `DASHSCOPE_API_KEY` 即切换到真实识别：https://bailian.console.aliyun.com/
+> 申请阿里百炼 DashScope 的 API-KEY（模型 `qwen3.6-flash`，qwen-vl-plus 已于 2026-07 下线）后填 `DASHSCOPE_API_KEY` 即切换到真实识别：https://bailian.console.aliyun.com/
 
 ### 数据库迁移
 
@@ -82,7 +82,7 @@ npm run db:types   # 重新生成 TS 类型
 | `app/api/items/[id]/rule/route.ts` | 低库存阈值 upsert / 删除 |
 | `app/api/*/route.ts` | 19+ 个 API 路由（items / recognition / restock / dashboard / share …） |
 | `supabase/migrations/0001–0006` | 12 张表 schema + RLS + 低库存规则 + 草稿/反馈 |
-| `lib/ai/*` | Qwen-VL / GLM-4V 适配器 + mock + schema 校验 + 配额 |
+| `lib/ai/*` | Qwen3.6-Flash / GLM-4V 适配器 + mock + schema 校验 + 配额 |
 | `lib/restock/*` | 补货建议 / 购物清单 / 分享 token |
 | `lib/supabase/*` | client / server / middleware / storage |
 | `components/ui/*` | 基础组件（PRD §2） |

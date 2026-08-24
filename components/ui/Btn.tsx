@@ -44,7 +44,7 @@ const variantClasses: Record<BtnVariant, string> = {
   primary:
     'bg-accent-sage text-white border-2 border-accent-sage ' +
     'shadow-[0_5px_0_0_var(--shadow-teal-3d)] ' +
-    'hover:bg-[#3dd4c6] hover:border-[#3dd4c6] hover:-translate-y-px hover:shadow-[0_6px_0_0_var(--shadow-teal-3d)] ' +
+    'hover:bg-[#41dd52] hover:border-[#41dd52] hover:-translate-y-px hover:shadow-[0_6px_0_0_var(--shadow-teal-3d)] ' +
     'active:translate-y-0.5 active:shadow-[0_1px_0_0_var(--shadow-teal-3d)]',
   secondary:
     'bg-bg-canvas text-ink-primary border-2 border-border-outline ' +

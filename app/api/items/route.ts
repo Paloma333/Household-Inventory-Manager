@@ -67,6 +67,8 @@ const CreateItemSchema = z.object({
   category_id: z.string().uuid().optional().nullable(),
   expiry_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, '日期格式应为 YYYY-MM-DD').optional().nullable(),
   package_quantity: z.number().finite().positive().optional().nullable(),
+  // 「快用完时提醒我」：勾选 → 建 low_stock_rule（threshold=1）
+  restock_alert: z.boolean().optional(),
   // 这次是"买入"还是"调整"？默认 purchase（首次入手）
   initial_event_type: z.enum(['purchase', 'adjust']).default('purchase'),
 })
@@ -158,6 +160,16 @@ export async function POST(request: NextRequest) {
       { error: 'event 写入失败，已回滚' },
       { status: 500 }
     )
+  }
+
+  // 「快用完时提醒我」→ 建 low_stock_rule（勾选才建，不勾绝不提示「少」）
+  if (body.restock_alert) {
+    await supabase
+      .from('low_stock_rules')
+      .upsert(
+        { item_id: item.item_id, threshold: 1, enabled: true },
+        { onConflict: 'item_id' }
+      )
   }
 
   return NextResponse.json({

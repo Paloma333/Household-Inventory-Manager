@@ -126,7 +126,7 @@ create table public.recognition_tasks (
   source_type text not null,                            -- 'receipt' / 'screenshot' / 'camera'
   image_url text,                                       -- Supabase Storage 短期签名 URL
   status text not null default 'pending',               -- pending / processing / succeeded / failed / timeout
-  model text,                                           -- 'qwen-vl-plus' / 'glm-4v'
+  model text,                                           -- 'qwen3.6-flash' / 'glm-4v'
   processing_time_ms int,
   error_message text,
   created_at timestamptz not null default now()

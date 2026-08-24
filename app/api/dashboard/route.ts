@@ -7,9 +7,9 @@ import { createSupabaseServerClient } from '@/lib/supabase/server'
  * 返回：
  *   householdName
  *   itemCount                     — 当前 household 全部未删 item
- *   lowStockCount                 — 触发低库存预警的数量（quantity <= sum(low_stock_rules.threshold)），Sprint 1 暂时 0；Sprint 4 接阈值表
+ *   lowStockCount                 — 勾了「快用完时提醒我」且 quantity ≤ threshold 的数量（opt-in）
  *   expiringSoonCount             — 7 天内过期的商品数
- *   recentEvents                  — 最近 5 条 inventory_events，附带 item 名字
+ *   recentEvents                  — 最近 3 条 inventory_events，附带 item 名字
  *   categoryCounts                — 每个分类下的 item 数量，首页 chip 用
  *
  * 跑得稍微多查询，但每天打开一次，无所谓
@@ -77,21 +77,21 @@ export async function GET() {
       )
       .eq('household_id', household.household_id)
       .order('created_at', { ascending: false })
-      .limit(5),
+      .limit(3),
     supabase
       .from('items')
       .select('category_id, categories:category_id ( name )')
       .eq('household_id', household.household_id)
       .is('deleted_at', null)
       .not('category_id', 'is', null),
-    // Sprint 1 简化：低库存 = quantity <= 1 且 quantity > 0。Sprint 4 接 low_stock_rules 表
+    // 低库存 = 勾了「快用完时提醒我」（enabled 规则）且 quantity ≤ threshold
+    // （quantity 与 threshold 是两列比较，拿回来 JS 里算）
     supabase
       .from('items')
-      .select('*', { count: 'exact', head: true })
+      .select('quantity, low_stock_rules ( threshold, enabled )')
       .eq('household_id', household.household_id)
       .is('deleted_at', null)
-      .gt('quantity', 0)
-      .lte('quantity', 1),
+      .gt('quantity', 0),
   ])
 
   // 分类聚合
@@ -113,10 +113,18 @@ export async function GET() {
     item_name: e.items?.canonical_name ?? '已删除',
   }))
 
+  // 低库存计数：只统计勾了「快用完时提醒我」且 quantity ≤ threshold 的
+  const lowStockCount = (lowStockRes.data ?? []).filter((row: any) => {
+    const rule = Array.isArray(row.low_stock_rules)
+      ? row.low_stock_rules[0]
+      : row.low_stock_rules
+    return rule?.enabled && Number(row.quantity) <= Number(rule.threshold)
+  }).length
+
   return NextResponse.json({
     householdName: household.name,
     itemCount: itemsCountRes.count ?? 0,
-    lowStockCount: lowStockRes.count ?? 0,
+    lowStockCount,
     expiringSoonCount: expiringRes.count ?? 0,
     recentEvents,
     categoryCounts,

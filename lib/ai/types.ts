@@ -1,7 +1,7 @@
 /**
  * AI 识别相关类型 & 公共 schema
  *
- * Qwen-VL-Plus 返回的 raw 数据 → 解析 → NormalizedItem → 三档置信度分类
+ * Qwen3.6-Flash 返回的 raw 数据 → 解析 → NormalizedItem → 三档置信度分类
  */
 
 import { z } from 'zod'
@@ -31,7 +31,8 @@ export interface NormalizedItem {
   unit: string | null
   package_quantity: number | null
   expiry_date: string | null // YYYY-MM-DD 或 null
-  category_hint: string | null // 自由文本分类名，confirm 阶段映射到 categories 表
+  category_hint: string | null // 固定枚举之一（8 大类），confirm 阶段映射到 categories 表
+  restock_hint: boolean | null // AI 判断：是否易耗品（会用完需补货），用于预勾选「快用完时提醒我」
   confidence: FieldConfidence
 }
 
@@ -57,6 +58,7 @@ export const normalizedItemSchema = z.object({
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'expiry_date 须为 YYYY-MM-DD')
     .nullable(),
   category_hint: z.string().max(30).nullable(),
+  restock_hint: z.boolean().nullable().optional(),
   confidence: z.object({
     name: z.number().min(0).max(1),
     quantity: z.number().min(0).max(1),

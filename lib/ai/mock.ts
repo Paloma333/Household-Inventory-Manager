@@ -21,6 +21,7 @@ function makeItem(overrides: Partial<NormalizedItem>): NormalizedItem {
     package_quantity: null,
     expiry_date: null,
     category_hint: null,
+    restock_hint: null,
     confidence: {
       name: 0.95,
       quantity: 0.95,
@@ -41,7 +42,7 @@ const receiptItems: NormalizedItem[] = [
     quantity: 2,
     unit: '罐',
     package_quantity: 1,
-    category_hint: '饮料',
+    category_hint: '食品饮料', restock_hint: true,
     confidence: { name: 0.96, quantity: 0.95, category: 0.93, unit: 0.92, package_quantity: 0.9, expiry_date: 0.4 },
   }),
   makeItem({
@@ -51,7 +52,7 @@ const receiptItems: NormalizedItem[] = [
     quantity: 1,
     unit: '提',
     package_quantity: 12,
-    category_hint: '乳制品',
+    category_hint: '食品饮料', restock_hint: true,
     confidence: { name: 0.91, quantity: 0.55, category: 0.88, unit: 0.84, package_quantity: 0.92, expiry_date: 0.6 },
   }),
   makeItem({
@@ -61,7 +62,7 @@ const receiptItems: NormalizedItem[] = [
     quantity: 1,
     unit: '箱',
     package_quantity: 24,
-    category_hint: '纸品',
+    category_hint: '家居清洁', restock_hint: true,
     confidence: { name: 0.72, quantity: 0.4, category: 0.85, unit: 0.7, package_quantity: 0.88, expiry_date: 0.3 },
   }),
   makeItem({
@@ -71,7 +72,7 @@ const receiptItems: NormalizedItem[] = [
     quantity: 1,
     unit: '袋',
     package_quantity: 5,
-    category_hint: '速食',
+    category_hint: '食品饮料', restock_hint: true,
     confidence: { name: 0.94, quantity: 0.7, category: 0.78, unit: 0.82, package_quantity: 0.9, expiry_date: 0.5 },
   }),
   makeItem({
@@ -81,7 +82,7 @@ const receiptItems: NormalizedItem[] = [
     quantity: 1,
     unit: '瓶',
     package_quantity: 1,
-    category_hint: '调味品',
+    category_hint: '食品饮料', restock_hint: true,
     expiry_date: '2026-12-30',
     confidence: { name: 0.89, quantity: 0.92, category: 0.86, unit: 0.94, package_quantity: 0.8, expiry_date: 0.88 },
   }),
@@ -92,7 +93,7 @@ const receiptItems: NormalizedItem[] = [
     quantity: 1,
     unit: '箱',
     package_quantity: 24,
-    category_hint: '饮料',
+    category_hint: '食品饮料', restock_hint: true,
     confidence: { name: 0.95, quantity: 0.6, category: 0.92, unit: 0.9, package_quantity: 0.94, expiry_date: 0.4 },
   }),
 ]
@@ -105,7 +106,7 @@ const screenshotItems: NormalizedItem[] = [
     quantity: 1,
     unit: '提',
     package_quantity: 2,
-    category_hint: '纸品',
+    category_hint: '家居清洁', restock_hint: true,
     confidence: { name: 0.88, quantity: 0.7, category: 0.86, unit: 0.75, package_quantity: 0.92, expiry_date: 0.2 },
   }),
   makeItem({
@@ -114,7 +115,7 @@ const screenshotItems: NormalizedItem[] = [
     brand: '滴露',
     quantity: 1,
     unit: '瓶',
-    category_hint: '清洁用品',
+    category_hint: '家居清洁', restock_hint: true,
     confidence: { name: 0.83, quantity: 0.95, category: 0.72, unit: 0.96, package_quantity: 0.5, expiry_date: 0.6 },
   }),
   makeItem({
@@ -123,7 +124,7 @@ const screenshotItems: NormalizedItem[] = [
     brand: '立白',
     quantity: 1,
     unit: '瓶',
-    category_hint: '清洁用品',
+    category_hint: '家居清洁', restock_hint: true,
     confidence: { name: 0.92, quantity: 0.92, category: 0.8, unit: 0.95, package_quantity: 0.7, expiry_date: 0.4 },
   }),
   makeItem({
@@ -132,7 +133,7 @@ const screenshotItems: NormalizedItem[] = [
     brand: '蓝月亮',
     quantity: 1,
     unit: '瓶',
-    category_hint: '清洁用品',
+    category_hint: '家居清洁', restock_hint: true,
     confidence: { name: 0.95, quantity: 0.9, category: 0.83, unit: 0.95, package_quantity: 0.6, expiry_date: 0.5 },
   }),
 ]
@@ -144,7 +145,7 @@ const cameraItems: NormalizedItem[] = [
     brand: '高露洁',
     quantity: 1,
     unit: '支',
-    category_hint: '个护',
+    category_hint: '个护美妆', restock_hint: true,
     confidence: { name: 0.74, quantity: 0.45, category: 0.65, unit: 0.82, package_quantity: 0.5, expiry_date: 0.5 },
   }),
   makeItem({
@@ -153,7 +154,7 @@ const cameraItems: NormalizedItem[] = [
     brand: '海飞丝',
     quantity: 1,
     unit: '瓶',
-    category_hint: '个护',
+    category_hint: '个护美妆', restock_hint: true,
     confidence: { name: 0.86, quantity: 0.5, category: 0.7, unit: 0.85, package_quantity: 0.6, expiry_date: 0.6 },
   }),
   makeItem({
@@ -163,7 +164,7 @@ const cameraItems: NormalizedItem[] = [
     quantity: 1,
     unit: '提',
     package_quantity: 10,
-    category_hint: '纸品',
+    category_hint: '家居清洁', restock_hint: true,
     confidence: { name: 0.78, quantity: 0.55, category: 0.81, unit: 0.7, package_quantity: 0.88, expiry_date: 0.3 },
   }),
   makeItem({
@@ -172,7 +173,7 @@ const cameraItems: NormalizedItem[] = [
     brand: null,
     quantity: 1,
     unit: '瓶',
-    category_hint: '调味品',
+    category_hint: '食品饮料', restock_hint: true,
     confidence: { name: 0.42, quantity: 0.4, category: 0.5, unit: 0.65, package_quantity: 0.3, expiry_date: 0.2 },
   }),
 ]

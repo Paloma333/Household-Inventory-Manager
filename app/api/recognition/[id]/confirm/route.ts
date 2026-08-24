@@ -49,6 +49,8 @@ const DecisionSchema = z.object({
     .optional(),
   matched_item_id: z.string().uuid().nullable().optional(),
   corrected: z.boolean().optional(),
+  // 「快用完时提醒我」开关：勾选 → 为该 item 建 low_stock_rule（threshold=1）
+  restock_alert: z.boolean().optional(),
 })
 
 const BodySchema = z.object({
@@ -139,6 +141,14 @@ export async function POST(
   let skippedItems = 0
   const touchedItemIds: string[] = []
 
+  // 「快用完时提醒我」→ 建 low_stock_rule（幂等 upsert，threshold 默认 1）
+  async function ensureRestockRule(itemId: string, enabled?: boolean) {
+    if (!enabled) return
+    await service
+      .from('low_stock_rules')
+      .upsert({ item_id: itemId, threshold: 1, enabled: true }, { onConflict: 'item_id' })
+  }
+
   for (const d of decisions) {
     if (!validIds.has(d.recognition_item_id)) {
       // 越界 id 跳过
@@ -206,6 +216,9 @@ export async function POST(
         })
         .eq('recognition_item_id', d.recognition_item_id)
 
+      // 快用完提醒（勾选了才建规则）
+      await ensureRestockRule(created.item_id, d.restock_alert)
+
       newItems++
       touchedItemIds.push(created.item_id)
       continue
@@ -259,6 +272,7 @@ export async function POST(
               corrected: d.corrected ?? false,
             })
             .eq('recognition_item_id', d.recognition_item_id)
+          await ensureRestockRule(created.item_id, d.restock_alert)
           newItems++
           touchedItemIds.push(created.item_id)
         }
@@ -317,6 +331,9 @@ export async function POST(
 
       mergedItems++
       touchedItemIds.push(existing.item_id)
+
+      // merge 也支持「快用完时提醒我」（对既有 item 建规则）
+      await ensureRestockRule(existing.item_id, d.restock_alert)
     }
   }
 

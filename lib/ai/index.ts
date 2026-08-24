@@ -3,10 +3,10 @@ import { qwenAdapter, getDashScopeKey } from './qwen'
 import { mockRecognize } from './mock'
 
 /**
- * 决定走 mock 还是真实 Qwen-VL-Plus：
+ * 决定走 mock 还是真实 Qwen3.6-Flash：
  * - MOCK_AI=1 → mock
  * - DASHSCOPE_API_KEY / QWEN_API_KEY 都没设置 → mock
- * - 否则 → qwen-vl-plus
+ * - 否则 → qwen3.6-flash
  *
  * 注意：MOCK 模式下 tokens_used = 0，不计入月度配额
  */

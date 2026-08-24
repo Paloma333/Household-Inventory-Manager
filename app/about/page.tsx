@@ -18,7 +18,7 @@ const FEATURES = [
 const STACK = [
   'Next.js 14 (App Router) · TypeScript · Tailwind',
   'Supabase：Postgres + Auth + Storage + RLS',
-  'Qwen-VL-Plus 视觉识别（含本地 mock 兜底）',
+  'Qwen3.6-Flash 视觉识别（含本地 mock 兜底）',
   'React Query · Zustand · react-hook-form · zod',
 ]
 

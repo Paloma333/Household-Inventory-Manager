@@ -4,7 +4,9 @@
  *
  * 规则（按优先级排高到低，同一 item 只能出现在一组）：
  *   1. 已用完 (out_of_stock)：items.quantity = 0
- *   2. 快用完 (low_stock)：   quantity > 0 且 ≤ threshold（默认 1）或 < package_quantity/2
+ *   2. 快用完 (low_stock)：   quantity > 0 且 ≤ threshold
+ *      —— 只看用户主动勾了「快用完时提醒我」的（low_stock_rules.enabled），
+ *         没勾的绝不提示（数量=1 不再自动算「快用完」）
  *   3. 快过期 (expiring_soon)：expiry_date ∈ [今天, 今天+7]
  *
  * 与 inventory_events 无关，只看当前 items 快照 —— 用户操作之后状态会变。
@@ -17,7 +19,6 @@ import type {
   SuggestGroupKey,
 } from './types'
 
-const DEFAULT_LOW_THRESHOLD = 1
 const EXPIRING_WINDOW_DAYS = 7
 
 interface ItemRow {
@@ -111,17 +112,10 @@ export async function computeSuggest(
       placed.add(it.item_id)
       continue
     }
-    // 2. 快用完
-    const threshold =
-      thresholdMap.get(it.item_id) ?? DEFAULT_LOW_THRESHOLD
-    const halfPack =
-      it.package_quantity && it.package_quantity > 0
-        ? it.package_quantity / 2
-        : null
+    // 2. 快用完 —— 只有勾了「快用完时提醒我」（enabled 规则）的才算
+    const threshold = thresholdMap.get(it.item_id)
     const isLow =
-      Number(it.quantity) > 0 &&
-      (Number(it.quantity) <= threshold ||
-        (halfPack !== null && Number(it.quantity) < halfPack))
+      threshold !== undefined && Number(it.quantity) > 0 && Number(it.quantity) <= threshold
     if (isLow) {
       lowStock.push(
         mkSuggest(it, `剩 ${it.quantity}${it.unit ?? '个'} ≤ ${threshold}`)

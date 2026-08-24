@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { ArrowLeft, Save, Sparkles } from 'lucide-react'
+import { ArrowLeft, BellRing, Check, Save, Sparkles } from 'lucide-react'
 import { Input } from '@/components/ui/Input'
 import { Btn } from '@/components/ui/Btn'
 import { toast } from '@/components/ui/Toast'
@@ -63,6 +63,7 @@ export default function ManualAddPage() {
   const [cats, setCats] = React.useState<CategoryNode[] | null>(null)
   const [catsError, setCatsError] = React.useState<string | null>(null)
   const [submitting, setSubmitting] = React.useState(false)
+  const [restockAlert, setRestockAlert] = React.useState(false)
   const firedStartRef = React.useRef(false)
 
   const {
@@ -126,6 +127,7 @@ export default function ManualAddPage() {
       if (data.category_id) payload.category_id = data.category_id
       if (data.expiry_date) payload.expiry_date = data.expiry_date
       if (data.package_quantity) payload.package_quantity = Number(data.package_quantity)
+      payload.restock_alert = restockAlert
 
       const res = await fetch('/api/items', {
         method: 'POST',
@@ -172,7 +174,7 @@ export default function ManualAddPage() {
       <form onSubmit={onSubmit} className="mt-8 flex flex-col gap-5">
         {/* 名字 */}
         <Input
-          label="叫什么"
+          label="物品名称"
           placeholder="例：抽纸 / 厨房纸 / 牙膏"
           autoFocus
           autoComplete="off"
@@ -184,7 +186,7 @@ export default function ManualAddPage() {
         <div className="grid grid-cols-[1fr_auto] gap-3 items-end">
           <Input
             kind="number"
-            label="多少"
+            label="数量"
             placeholder="例：6"
             {...register('quantity')}
             errorText={errors.quantity?.message}
@@ -227,6 +229,37 @@ export default function ManualAddPage() {
             />
           )}
         </div>
+
+        {/* 快用完时提醒我 */}
+        <button
+          type="button"
+          role="switch"
+          aria-checked={restockAlert}
+          onClick={() => setRestockAlert((v) => !v)}
+          className="flex items-center justify-between gap-3 rounded-md border border-border-hairline bg-bg-canvas px-3 py-2.5 text-left"
+        >
+          <span>
+            <span className="flex items-center gap-1.5 text-small text-ink-primary">
+              <BellRing className="h-3.5 w-3.5 text-accent-sage" /> 快用完时提醒我
+            </span>
+            <span className="block mt-0.5 text-micro text-ink-tertiary">
+              勾上后剩得不多时会提醒补货，不勾就不会提示「少」
+            </span>
+          </span>
+          <span
+            className={
+              'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors duration-tap ' +
+              (restockAlert ? 'bg-accent-sage' : 'bg-ink-tertiary/30')
+            }
+          >
+            <span
+              className={
+                'inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform duration-tap ' +
+                (restockAlert ? 'translate-x-5' : 'translate-x-0.5')
+              }
+            />
+          </span>
+        </button>
 
         {/* 品牌（折叠/Sprint 1 总是显示） */}
         <Input
@@ -305,14 +338,13 @@ function CategoryPicker({
             onClick={() => onChange(active ? '' : c.id)}
             aria-pressed={active}
             className={
-              'px-2.5 h-8 rounded-pill text-small border transition-colors duration-tap ' +
+              'px-2.5 h-8 inline-flex items-center gap-1 rounded-pill text-small border transition-colors duration-tap ' +
               (active
-                ? 'bg-accent-sage text-bg-elevated border-accent-sage'
-                : c.depth === 0
-                  ? 'bg-bg-canvas text-ink-primary border-border-hairline hover:bg-bg-elevated'
-                  : 'bg-bg-surface text-ink-secondary border-border-hairline hover:bg-bg-elevated')
+                ? 'bg-accent-sage text-white border-accent-sage shadow-sm'
+                : 'bg-bg-canvas text-ink-primary border-border-hairline hover:bg-bg-elevated')
             }
           >
+            {active && <Check className="h-3.5 w-3.5" />}
             {c.label}
           </button>
         )

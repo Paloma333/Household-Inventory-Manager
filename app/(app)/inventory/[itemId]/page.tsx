@@ -55,8 +55,7 @@ interface Item {
   low_stock_rules: { threshold: number; enabled: boolean } | null
 }
 
-/** 无自定义规则时的默认低库存阈值（与 lib/restock/suggest.ts 保持一致） */
-const DEFAULT_LOW_THRESHOLD = 1
+/** 低库存提醒阈值输入框的默认展示值（保存时才真正建规则） */
 
 interface Event {
   event_id: string
@@ -359,8 +358,7 @@ export default function ItemDetailPage({
 
 function thresholdStatus(item: Item): string {
   const rule = item.low_stock_rules
-  if (!rule) return `剩 ${DEFAULT_LOW_THRESHOLD}${item.unit ?? '个'}时提醒`
-  if (!rule.enabled) return '已关闭'
+  if (!rule || !rule.enabled) return '未开启'
   return `剩 ${Number(rule.threshold)}${item.unit ?? '个'}时提醒`
 }
 
@@ -564,9 +562,9 @@ function ThresholdRuleSheet({
 }) {
   const rule = item.low_stock_rules
   const [threshold, setThreshold] = React.useState(
-    rule ? String(Number(rule.threshold)) : String(DEFAULT_LOW_THRESHOLD)
+    rule ? String(Number(rule.threshold)) : '1'
   )
-  const [enabled, setEnabled] = React.useState(rule ? rule.enabled : true)
+  const [enabled, setEnabled] = React.useState(rule ? rule.enabled : false)
   const [saving, setSaving] = React.useState(false)
   const [err, setErr] = React.useState<string | null>(null)
   const unit = item.unit ?? '个'
@@ -604,8 +602,8 @@ function ThresholdRuleSheet({
         method: 'DELETE',
       })
       const json = await res.json()
-      if (!res.ok || !json.ok) throw new Error(json.error || '恢复失败')
-      toast.info('已恢复默认（剩 1 时提醒）', { durationMs: 1600 })
+      if (!res.ok || !json.ok) throw new Error(json.error || '关闭失败')
+      toast.info('提醒已关，不会再提示「需补货」', { durationMs: 1600 })
       onSaved()
     } catch (e: any) {
       setErr(e?.message ?? '恢复失败')
@@ -618,7 +616,7 @@ function ThresholdRuleSheet({
     <Sheet open onOpenChange={(o) => !o && onClose()} title="低库存提醒">
       <div className="flex flex-col gap-4">
         <p className="text-small text-ink-secondary">
-          剩下不多时提醒你补货，也会出现在补货建议的「快用完」里
+          勾上后，剩得不多时会提醒补货，也会出现在补货建议的「快用完」里；不勾就完全不提醒
         </p>
 
         <div className="flex items-end gap-2">
@@ -645,7 +643,7 @@ function ThresholdRuleSheet({
           onClick={() => setEnabled((v) => !v)}
           className="w-full flex items-center justify-between py-1"
         >
-          <span className="text-body text-ink-primary">启用提醒</span>
+          <span className="text-body text-ink-primary">快用完时提醒我</span>
           <span
             className={cn(
               'relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-tap',
@@ -676,7 +674,7 @@ function ThresholdRuleSheet({
             onClick={resetDefault}
             iconLeading={<RotateCcw className="h-3.5 w-3.5" />}
           >
-            恢复默认（剩 1 时提醒）
+            关闭提醒（不再提示「需补货」）
           </Btn>
         )}
       </div>
