@@ -23,7 +23,7 @@ import { getBrowserSupabase } from '@/lib/supabase/client'
 /**
  * /settings — 我的（PRD §3.8）
  *
- * 小家名编辑 · 草稿 / 回收站入口 · 导出 CSV/JSON · 关于与反馈 · 退出
+ * 小屋名编辑 · 草稿 / 回收站入口 · 导出 CSV/JSON · 关于与反馈 · 退出
  */
 
 export default function SettingsPage() {
@@ -84,7 +84,7 @@ export default function SettingsPage() {
       if (!res.ok || !json.ok) throw new Error(json.error || '保存失败')
       setHousehold((prev) => (prev ? { ...prev, name: json.name } : prev))
       setEditing(false)
-      toast.info('小家名字改好啦')
+      toast.info('小屋名字改好啦')
     } catch (e: any) {
       toast.error(e?.message ?? '保存失败')
     } finally {
@@ -121,7 +121,7 @@ export default function SettingsPage() {
       </section>
 
       <section className="mt-6">
-        <h2 className="text-h3 font-semibold mb-3">小家</h2>
+        <h2 className="text-h3 font-semibold mb-3">小屋</h2>
         <Card className="p-4">
           {editing ? (
             <div className="flex items-center gap-2">
@@ -158,14 +158,14 @@ export default function SettingsPage() {
             <button
               type="button"
               onClick={() => {
-                setNameDraft(household?.name ?? '我的小家')
+                setNameDraft(household?.name ?? '我的小屋')
                 setEditing(true)
               }}
               className="w-full flex items-center justify-between gap-2"
             >
-              <span className="text-body">小家名称</span>
+              <span className="text-body">小屋名称</span>
               <span className="inline-flex items-center gap-1 text-ink-secondary">
-                {household?.name ?? '我的小家'}
+                {household?.name ?? '我的小屋'}
                 <Pencil className="h-3.5 w-3.5" />
               </span>
             </button>
@@ -226,7 +226,7 @@ export default function SettingsPage() {
           <Link href="/about">
             <Card className="p-4 flex items-center justify-between">
               <span className="text-body inline-flex items-center gap-2">
-                <Info className="h-4 w-4 text-ink-secondary" /> 关于小家
+                <Info className="h-4 w-4 text-ink-secondary" /> 关于小屋
               </span>
               <ChevronRight className="h-4 w-4 text-ink-secondary" />
             </Card>

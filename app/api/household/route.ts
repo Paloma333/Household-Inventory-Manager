@@ -3,10 +3,10 @@ import { z } from 'zod'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 
 /**
- * /api/household — 小家信息
+ * /api/household — 小屋信息
  *
  * GET   — 当前 household（名称 / 创建时间 / item 数）
- * PATCH — 改小家名（PRD §3.8：最多 12 字）
+ * PATCH — 改小屋名（PRD §3.8：最多 12 字）
  */
 
 export async function GET() {

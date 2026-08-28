@@ -29,7 +29,7 @@ function BottomNav() {
   const pathname = usePathname()
 
   const tabs = [
-    { href: '/', label: '小家', icon: Home },
+    { href: '/', label: '小屋', icon: Home },
     { href: '/inventory', label: '库存', icon: Boxes },
     { href: '/restock', label: '补货', icon: ClipboardList },
     { href: '/settings', label: '我的', icon: Settings },

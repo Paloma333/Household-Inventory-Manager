@@ -12,7 +12,7 @@ import { Section } from './Section'
 
 const sizes = [
   { key: 'display', label: 'display', sample: '把家里放进云' },
-  { key: 'h1', label: 'h1 / 24', sample: '小家首页' },
+  { key: 'h1', label: 'h1 / 24', sample: '小屋首页' },
   { key: 'h2', label: 'h2 / 20', sample: '快过期的牛奶' },
   { key: 'h3', label: 'h3 / 17', sample: '今天吃这个' },
   { key: 'body', label: 'body / 15', sample: '囤了 3 包咖啡豆,临期 5 天' },

@@ -7,7 +7,7 @@
  * 本文件在其后加载，dark 模式下会覆盖部分 --animal-* 让库组件入夜。
  *
  * 映射约定：
- *   --accent-sage  → 动森草绿 #27d039（主操作，与 Title 缎带同色系）
+ *   --accent-sage  → 薄荷青 #19C8B9（主操作按钮；animal-island-ui token 名）
  *   --accent-clay  → NookPhone 暖橙 #e59266（警示：已用完/过期）
  *   --accent-honey → animal 铃钱黄 #f5c31c（数值高亮/警告）
  *   --ink-*        → animal 暖棕文字族（绝不纯黑）
@@ -31,8 +31,8 @@
   --ink-secondary: #9f927d;
   --ink-tertiary: #c4b89e;
 
-  --accent-sage: #27d039; /* 动森草绿 = 主操作（与 Title 缎带一致，默认即实心绿） */
-  --accent-sage-soft: #e2f8e6;
+  --accent-sage: #19c8b9; /* 薄荷青 = 主操作按钮（animal-island-ui token） */
+  --accent-sage-soft: #d9f5ef;
   --accent-clay: #e59266; /* 暖橙 = 警示（NookPhone app-orange） */
   --accent-clay-soft: #fbe7dc;
   --accent-honey: #f5c31c; /* 铃钱黄 = 数值高亮 / 低置信度 */
@@ -54,7 +54,7 @@
 
   /* === 3D 游戏按钮厚边（仅 primary / danger 按钮可用） === */
   --shadow-btn-3d: #bdaea0;
-  --shadow-teal-3d: #1c9e2c; /* 草绿按钮 3D 厚边（变量名沿用，避免大改） */
+  --shadow-teal-3d: #138a80; /* 薄荷青按钮 3D 厚边（深一档） */
   --shadow-danger-3d: #c94444;
   --shadow-soft: 0 2px 4px 0 rgba(61, 52, 40, 0.06);
   --shadow-lift: 0 3px 10px 0 rgba(61, 52, 40, 0.1);
@@ -112,8 +112,8 @@
   --ink-secondary: #b8a888;
   --ink-tertiary: #8a7b66;
 
-  --accent-sage: #3cd94e;
-  --accent-sage-soft: #1e4626;
+  --accent-sage: #25d3c5; /* 薄荷青（夜里稍亮一档） */
+  --accent-sage-soft: #163a35;
   --accent-clay: #e59266;
   --accent-clay-soft: #54372a;
   --accent-honey: #f7d04a;
@@ -133,7 +133,7 @@
   --wood-soft: #443b26;
 
   --shadow-btn-3d: #17130c;
-  --shadow-teal-3d: #15851f;
+  --shadow-teal-3d: #0e5e57;
   --shadow-danger-3d: #a33a3a;
   --shadow-soft: 0 2px 4px 0 rgba(0, 0, 0, 0.3);
   --shadow-lift: 0 3px 10px 0 rgba(0, 0, 0, 0.35);
@@ -150,7 +150,7 @@
   --animal-border-color-hover: #b8a888;
   --animal-border-color-light: #4d4331;
   --animal-mask-bg: rgba(0, 0, 0, 0.55);
-  --animal-primary-color: #3cd94e;
+  --animal-primary-color: #25d3c5;
   --animal-shadow-sm: 0 2px 4px 0 rgba(0, 0, 0, 0.3);
   --animal-shadow-base: 0 3px 10px 0 rgba(0, 0, 0, 0.35);
   --animal-shadow-lg: 0 8px 24px 0 rgba(0, 0, 0, 0.4);
@@ -227,6 +227,18 @@
   a {
     color: inherit;
   }
+}
+
+/* ───────── animal-island-ui 覆盖 ─────────
+ * Title 燕尾缎带的默认草绿 (#27d039) 硬编码在库 CSS 里，不走 token，
+ * 在这里全局覆盖为薄荷青（与 --accent-sage 主操作色一致）。
+ * 库的 ribbon 类名是 CSS-module 哈希（animal-ribbon-xxxx），
+ * 用属性选择器匹配，特异性 0-1-0 同级但本文件在库之后加载，可稳定覆盖。
+ */
+[class*='animal-ribbon'] {
+  --rf: #19c8b9;
+  --rb: #138a80;
+  --rk: #0a5650;
 }
 
 @layer utilities {

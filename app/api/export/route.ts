@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: itemErr.message }, { status: 500 })
   }
 
-  const fileName = `小家库存-${new Date().toISOString().slice(0, 10)}`
+  const fileName = `小屋库存-${new Date().toISOString().slice(0, 10)}`
 
   if (format === 'json') {
     const { data: events } = await supabase

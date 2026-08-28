@@ -46,7 +46,7 @@ export async function POST() {
   if (!existing) {
     await service.from('households').insert({
       owner_id: user.id,
-      name: '我的小家',
+      name: '我的小屋',
       timezone: 'GMT+8',
     })
   }

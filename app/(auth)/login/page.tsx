@@ -38,9 +38,9 @@ function LoginForm() {
       })
 
       if (authError) {
-        // Sprint 0 调试期：把真实 Supabase 错误展示出来
-        setError(`${authError.message || authError.name || '未知错误'}（status: ${authError.status ?? 'n/a'}）`)
+        // 详细错误只打在 console 便于排查，界面统一显示通用文案
         console.error('[login] supabase error:', authError)
+        setError('出了点小问题，稍后再试')
         return
       }
 
@@ -57,9 +57,9 @@ function LoginForm() {
   return (
     <main className="min-h-screen flex flex-col px-6 py-10 bg-bg-canvas">
       <div className="max-w-sm w-full mx-auto flex-1 flex flex-col justify-center">
-        <h1 className="font-semibold text-h1 text-ink-primary">回来啦 👋</h1>
+        <h1 className="font-semibold text-h1 text-ink-primary">爱是宜居的家，欢迎回来。</h1>
         <p className="mt-2 text-body text-ink-secondary">
-          你的小家一直在等你
+          你的小屋一直在等你
         </p>
 
         <form className="mt-8 flex flex-col gap-4" onSubmit={onSubmit}>
@@ -98,7 +98,7 @@ function LoginForm() {
             href={`/signup${next ? `?next=${encodeURIComponent(next)}` : ''}`}
             className="text-accent-sage font-medium underline-offset-2 hover:underline"
           >
-            带一份小家回来
+            建立一个你的小屋
           </Link>
         </p>
 

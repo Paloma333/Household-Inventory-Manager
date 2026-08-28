@@ -1,7 +1,7 @@
 {
-  "name": "小家",
-  "short_name": "小家",
-  "description": "一个让 AI 帮你记住家里有什么的治愈系库存工具",
+  "name": "小屋日志",
+  "short_name": "小屋日志",
+  "description": "记录、整理买回家的物品；轻松、用心地过好今天的生活。",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

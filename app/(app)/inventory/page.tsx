@@ -34,22 +34,17 @@ interface Item {
   low_stock_rules: { threshold: number; enabled: boolean } | null
 }
 
-/** 品类 → tile 上的 emoji（跟 0007 迁移后的 8 大类对齐） */
-const CATEGORY_EMOJI: Record<string, string> = {
-  食品饮料: '🍜',
-  生鲜果蔬: '🥬',
-  个护美妆: '🧴',
-  家居清洁: '🧺',
-  健康药品: '💊',
-  衣物配件: '🧣',
-  数码电器: '🔌',
-  其他: '📦',
-}
-
-function categoryEmoji(name: string | null | undefined): string {
-  if (!name) return '📦'
-  return CATEGORY_EMOJI[name] ?? '📦'
-}
+/** 8 个大类固定顺序（跟 0007 迁移后对齐；分组排序用） */
+const CATEGORY_ORDER: string[] = [
+  '食品饮料',
+  '生鲜果蔬',
+  '个护美妆',
+  '家居清洁',
+  '健康药品',
+  '衣物配件',
+  '数码电器',
+  '其他',
+]
 
 export default function InventoryPage() {
   const [allItems, setAllItems] = React.useState<Item[] | null>(null)
@@ -123,15 +118,15 @@ export default function InventoryPage() {
 
   // 按品类分组（固定大类顺序优先，未分类排最后）
   const grouped = React.useMemo(() => {
-    const groups = new Map<string, { emoji: string; items: Item[] }>()
+    const groups = new Map<string, { items: Item[] }>()
     filtered.forEach((it) => {
       const name = it.categories?.name ?? '未分类'
       if (!groups.has(name)) {
-        groups.set(name, { emoji: categoryEmoji(it.categories?.name), items: [] })
+        groups.set(name, { items: [] })
       }
       groups.get(name)!.items.push(it)
     })
-    const order = Object.keys(CATEGORY_EMOJI)
+    const order = CATEGORY_ORDER
     return Array.from(groups.entries())
       .map(([name, g]) => ({ name, ...g }))
       .sort((a, b) => {
@@ -207,7 +202,7 @@ export default function InventoryPage() {
           />
         ) : allItems && allItems.length === 0 ? (
           <EmptyState
-            title="小家还是空的"
+            title="小屋还是空的"
             description="手动加几样、或者等 Sprint 2 来用 AI 拍照入库"
             primary={
               <Link href="/add">
@@ -234,9 +229,6 @@ export default function InventoryPage() {
             {grouped.map((g) => (
               <section key={g.name}>
                 <div className="flex items-center gap-2 px-1">
-                  <span className="text-h3 leading-none" aria-hidden>
-                    {g.emoji}
-                  </span>
                   <h2 className="text-small font-semibold text-ink-primary">
                     {g.name}
                   </h2>
@@ -306,16 +298,8 @@ function ProductTile({ item }: { item: Item }) {
           lowStock && 'border-accent-clay/50'
         )}
       >
-        {/* 品类角标 */}
-        <span
-          className="absolute right-2 top-2 text-body leading-none opacity-80"
-          aria-hidden
-        >
-          {categoryEmoji(item.categories?.name)}
-        </span>
-
         {/* 名称 + 徽章 */}
-        <div className="pr-6">
+        <div>
           <p className="text-small font-semibold text-ink-primary break-words line-clamp-2">
             {item.canonical_name}
           </p>

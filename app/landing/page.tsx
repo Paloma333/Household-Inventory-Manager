@@ -21,9 +21,9 @@ import { Card } from '@/components/ui/Card'
  */
 
 export const metadata: Metadata = {
-  title: '小家 · 作品集',
+  title: '小屋日志 · My Cabin Log',
   description:
-    '小家（him）— 一个让 AI 帮你记住家里有什么的治愈系库存工具。拍照入库、低库存提醒、购物清单分享。',
+    '小屋日志（My Cabin Log）— 记录、整理买回家的物品；轻松、用心地过好今天的生活。拍照入库、快用完提醒、购物清单分享。',
 }
 
 const FEATURES = [
@@ -52,13 +52,13 @@ const FEATURES = [
 const DESIGN_INTENT = [
   {
     icon: House,
-    title: '生活感，而非应用感',
-    desc: '打开它不是打开一个工作台，是"走进自己刚收拾过的小厨房"。没有大喇叭、没有庆祝动画。',
+    title: '动森风格，治愈小岛',
+    desc: '奶油羊皮纸底 + 薄荷青 #19C8B9 + 暖棕文字，按钮有"按下去"的 3D 手感。视觉基于 animal-island-ui 设计系统。',
   },
   {
     icon: Palette,
-    title: '动森式治愈小岛',
-    desc: '奶油羊皮纸底 + 薄荷青 #19C8B9 + 暖棕文字，按钮有"按下去"的 3D 手感。视觉基于 animal-island-ui 设计系统。',
+    title: '生活感，而非应用感',
+    desc: '打开它不是打开一个工作台，是"走进自己刚收拾过的小厨房"。没有大喇叭、没有庆祝动画。',
   },
   {
     icon: Wind,
@@ -80,15 +80,15 @@ export default function LandingPage() {
       {/* ── Hero ── */}
       <header className="text-center">
         <p className="text-small text-ink-secondary tracking-widest uppercase">
-          him · household inventory manager
+          小屋日志 · My Cabin Log
         </p>
         <h1 className="mt-3 font-semibold text-display text-ink-primary leading-snug">
-          记住家里有什么，
+          记录、整理买回家的物品；
           <br />
-          就不用记了
+          轻松、用心地过好今天的生活。
         </h1>
         <p className="mt-4 text-body text-ink-secondary leading-relaxed">
-          小家是一个让 AI 帮你管理家里库存的 Web App。
+          小屋日志是一个让 AI 帮你管理家里库存的 Web App。
           <br className="hidden sm:block" />
           买东西时拍张照，剩下的交给它。
         </p>
@@ -153,7 +153,7 @@ export default function LandingPage() {
           ))}
         </div>
         <blockquote className="mt-6 px-5 py-4 rounded-md bg-accent-sage-soft text-body text-ink-primary leading-relaxed">
-          「绝对禁止：大眼睛卡通宠物、渐变彩色卡片墙、整屏 toast 庆祝。」
+          「绝对禁止：渐变彩色卡片墙。」
           <span className="block mt-1 text-small text-ink-secondary">
             —— 写在产品 PRD 第 0 页的第一行
           </span>
@@ -177,17 +177,17 @@ export default function LandingPage() {
       <section className="mt-16 text-center">
         <Card className="p-8">
           <p className="text-h3 font-semibold text-ink-primary">
-            想试试看家里的感觉？
+            爱是宜居的家，欢迎到来。
           </p>
           <p className="mt-2 text-small text-ink-secondary">
-            注册一个账号，加第一件东西，60 秒
+            注册账号，给你的小屋添加第一件东西吧～
           </p>
           <div className="mt-6">
             <Link
               href="/signup"
               className="inline-flex items-center justify-center h-12 px-6 rounded-sm bg-accent-sage text-bg-elevated text-body font-medium hover:opacity-90 transition-opacity duration-tap"
             >
-              带一份小家回来
+              建立一个你的小屋
             </Link>
           </div>
         </Card>
@@ -199,10 +199,10 @@ export default function LandingPage() {
           href="/about"
           className="text-small text-ink-secondary underline-offset-2 hover:underline"
         >
-          关于小家
+          关于小屋
         </Link>
         <p className="mt-3 text-micro text-ink-tertiary">
-          him · 2026 · 设计文档：PRD v1.1（UI 交互规格）
+          My Cabin Log · 2026 · 设计文档：PRD v1.1（UI 交互规格）
         </p>
       </footer>
     </main>

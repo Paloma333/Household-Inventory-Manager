@@ -417,7 +417,7 @@ export default function ConfirmPage({
             : task.source_type === 'screenshot'
               ? '截图里的商品'
               : '拍到的商品'}
-          ，核对下再加进小家
+          ，核对下再加进小屋
         </p>
         {task.model?.startsWith('mock') && (
           <p className="mt-2 text-micro text-accent-honey inline-flex items-center gap-1">
@@ -713,7 +713,7 @@ function DuplicateBranch({
         <AlertTriangle className="h-4 w-4 text-accent-honey shrink-0 mt-0.5" />
         <div className="flex-1 min-w-0">
           <p className="text-small text-ink-primary">
-            {isStrict ? '小家里已经有这个了' : '跟小家里有件像的'}
+            {isStrict ? '小屋里已经有这个了' : '跟小屋里有件像的'}
           </p>
           <p className="text-micro text-ink-secondary mt-1">
             现有：{matched.canonical_name} · 现存量 {matched.quantity}

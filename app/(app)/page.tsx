@@ -9,15 +9,16 @@ import { Card } from '@/components/ui/Card'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Events, track } from '@/lib/analytics'
+import { cn } from '@/lib/utils/cn'
 
 /**
- * 首页 / 我的小家 — PRD §3.1
+ * 首页 / 我的屋 — PRD §3.1
  *
  *   - 顶栏欢迎语（时分时问候）+ 装饰图案
  *   - "家里有 N 件" stat
- *   - 品类贴纸条（emoji 色块，替代纯文字清单）
+ *   - 品类一览 chips（纯文字，点击进库存）
  *   - 低库存 / 临近过期 提醒卡（有数据才显示）
- *   - 最近 3 条变化列表
+ *   - 最近 3 条变化列表（用掉/新增）
  *   - 空状态：欢迎引导手动添加
  */
 
@@ -39,33 +40,18 @@ interface DashboardData {
   categoryCounts: Array<{ category_id: string; name: string; count: number }>
 }
 
-const EventTypeLabel: Record<string, string> = {
-  purchase: '入手',
-  consume: '用掉',
-  adjust: '调整',
-  merge: '合并',
-  restock_confirm: '补货',
-}
-
-/** 事件 → emoji（最近变化列表用） */
-const EVENT_EMOJI: Record<string, string> = {
-  purchase: '🛍️',
-  consume: '🍽️',
-  adjust: '✏️',
-  merge: '🧺',
-  restock_confirm: '🛒',
-}
-
-/** 品类 → 贴纸 emoji（与 inventory 页一致） */
-const CATEGORY_EMOJI: Record<string, string> = {
-  食品饮料: '🍜',
-  生鲜果蔬: '🥬',
-  个护美妆: '🧴',
-  家居清洁: '🧺',
-  健康药品: '💊',
-  衣物配件: '🧣',
-  数码电器: '🔌',
-  其他: '📦',
+/** 最近变化的状态：只看增减方向 — 正=新增，负=用掉 */
+function eventLabel(e: RecentEvent): string {
+  if (e.quantity_change > 0) return '新增'
+  if (e.quantity_change < 0) return '用掉'
+  // 方向不明确时兜底到事件类型
+  const map: Record<string, string> = {
+    purchase: '新增',
+    consume: '用掉',
+    merge: '合并',
+    restock_confirm: '补货',
+  }
+  return map[e.event_type] ?? e.event_type
 }
 
 export default function HomePage() {
@@ -120,13 +106,13 @@ export default function HomePage() {
       {/* 欢迎语 — 动森燕尾缎带 */}
       <header className="enter-up relative">
         <Title size="large">
-          {greeting}，{data?.householdName ?? '我的小家'}
+          {greeting}，{data?.householdName ?? '我的小屋'}
         </Title>
         <div className="mt-3 text-body text-ink-secondary num-roll">
           {data === null ? (
             <Skeleton className="h-5 w-48 mt-1" />
           ) : itemCount === 0 ? (
-            '你的小家还是空的，先带第一样东西回来吧'
+            '你的小屋还是空的，先带第一样东西回来吧'
           ) : (
             <>
               家里有{' '}
@@ -150,22 +136,20 @@ export default function HomePage() {
         <p className="mt-4 text-small text-accent-clay">{error}</p>
       )}
 
-      {/* 品类贴纸条：emoji 色块一览，点进去就是库存 */}
+      {/* 品类一览 chips：纯文字，点进去就是库存 */}
       {data && data.categoryCounts.length > 0 && (
         <section className="mt-6 -mx-6 px-6">
-          <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-1">
+          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
             {data.categoryCounts.map((c) => (
               <Link
                 key={c.category_id}
                 href="/inventory"
-                className="shrink-0 flex flex-col items-center gap-1 group"
+                className="shrink-0 h-8 inline-flex items-center gap-1.5 px-3 rounded-pill bg-bg-surface border border-border-hairline text-small text-ink-primary active:scale-95 transition-transform duration-tap"
                 aria-label={`${c.name} ${c.count} 件`}
               >
-                <span className="h-14 w-14 grid place-items-center rounded-2xl bg-bg-surface border border-border-hairline text-h2 group-active:scale-95 transition-transform duration-tap">
-                  {CATEGORY_EMOJI[c.name] ?? '📦'}
-                </span>
-                <span className="text-micro text-ink-secondary">
-                  {c.count} 件
+                <span>{c.name}</span>
+                <span className="text-micro text-ink-secondary font-num">
+                  {c.count}
                 </span>
               </Link>
             ))}
@@ -217,14 +201,25 @@ export default function HomePage() {
                 <Card className="px-4 py-3 flex items-center gap-3">
                   <span
                     aria-hidden
-                    className="h-9 w-9 grid place-items-center rounded-pill bg-bg-surface text-body shrink-0"
+                    className={cn(
+                      'h-9 w-9 grid place-items-center rounded-pill text-body font-num font-semibold shrink-0',
+                      e.quantity_change > 0
+                        ? 'bg-accent-sage-soft text-accent-sage'
+                        : e.quantity_change < 0
+                          ? 'bg-accent-clay-soft text-accent-clay'
+                          : 'bg-bg-surface text-ink-secondary'
+                    )}
                   >
-                    {EVENT_EMOJI[e.event_type] ?? '✨'}
+                    {e.quantity_change > 0
+                      ? '+'
+                      : e.quantity_change < 0
+                        ? '−'
+                        : '·'}
                   </span>
                   <div className="flex-1 min-w-0">
                     <p className="text-body font-semibold truncate">{e.item_name}</p>
                     <p className="text-micro text-ink-secondary mt-0.5">
-                      {EventTypeLabel[e.event_type] ?? e.event_type} ·{' '}
+                      {eventLabel(e)} ·{' '}
                       {formatRelativeTime(e.created_at)}
                     </p>
                   </div>
@@ -271,7 +266,7 @@ export default function HomePage() {
             <Card className="px-4 py-3 flex items-center gap-3 active:bg-bg-elevated">
               <Sparkles className="h-5 w-5 text-accent-sage" strokeWidth={1.5} />
               <div className="flex-1">
-                <p className="text-body font-semibold">看看小家现在有什么</p>
+                <p className="text-body font-semibold">看看小屋现在有什么</p>
                 <p className="text-small text-ink-secondary mt-0.5">
                   按分类浏览、搜索、或点开看历史
                 </p>

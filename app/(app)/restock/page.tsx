@@ -137,7 +137,7 @@ export default function RestockPage() {
               strokeWidth={1.5}
             />
             <p className="mt-2 text-body text-ink-primary font-semibold">
-              小家储备充足
+              小屋储备充足
             </p>
             <p className="mt-1 text-small text-ink-secondary">
               暂无已用完 / 快用完 / 快过期的提醒

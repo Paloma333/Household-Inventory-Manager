@@ -44,7 +44,7 @@ const variantClasses: Record<BtnVariant, string> = {
   primary:
     'bg-accent-sage text-white border-2 border-accent-sage ' +
     'shadow-[0_5px_0_0_var(--shadow-teal-3d)] ' +
-    'hover:bg-[#41dd52] hover:border-[#41dd52] hover:-translate-y-px hover:shadow-[0_6px_0_0_var(--shadow-teal-3d)] ' +
+    'hover:bg-[#14b3a6] hover:border-[#14b3a6] hover:-translate-y-px hover:shadow-[0_6px_0_0_var(--shadow-teal-3d)] ' +
     'active:translate-y-0.5 active:shadow-[0_1px_0_0_var(--shadow-teal-3d)]',
   secondary:
     'bg-bg-canvas text-ink-primary border-2 border-border-outline ' +
@@ -103,7 +103,7 @@ export const Btn = React.forwardRef<HTMLButtonElement, BtnProps>(
           'inline-flex items-center justify-center rounded-pill',
           'font-semibold tracking-[0.02em] select-none whitespace-nowrap',
           'transition-[transform,box-shadow,background-color,border-color,color] duration-tap ease-out-quart',
-          'disabled:opacity-45 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-y-0',
+          'disabled:opacity-60 disabled:cursor-not-allowed disabled:translate-y-0',
           iconOnly ? iconOnlySize[size] : sizeClasses[size],
           variantClasses[variant],
           block && 'w-full',

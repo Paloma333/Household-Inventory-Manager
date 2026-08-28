@@ -62,12 +62,12 @@ export default function AddPage() {
         href="/"
         className="inline-flex items-center gap-1 text-small text-ink-secondary mb-4"
       >
-        <ArrowLeft className="h-4 w-4" /> 小家
+        <ArrowLeft className="h-4 w-4" /> 小屋
       </Link>
       <header>
         <Title size="large">添点东西</Title>
         <p className="mt-3 text-body text-ink-secondary">
-          选一种带回小家的方式
+          选一种带回小屋的方式
         </p>
       </header>
 

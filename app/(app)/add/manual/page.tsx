@@ -145,7 +145,7 @@ export default function ManualAddPage() {
         quantity: data.quantity,
       })
 
-      toast.info('已加进小家 →', { durationMs: 1800 })
+      toast.info('已加进小屋 →', { durationMs: 1800 })
       router.push('/inventory')
       router.refresh()
     } catch (e: any) {
@@ -295,7 +295,7 @@ export default function ManualAddPage() {
           loading={submitting}
           iconLeading={<Save className="h-5 w-5" />}
         >
-          加进小家
+          加进小屋
         </Btn>
 
         <p className="text-small text-ink-secondary inline-flex items-center gap-1.5">

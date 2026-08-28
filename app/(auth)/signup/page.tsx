@@ -40,9 +40,9 @@ function SignupForm() {
       })
 
       if (authError) {
-        // Sprint 0 调试期：把真实 Supabase 错误展示出来，方便排查
-        setError(`${authError.message || authError.name || '未知错误'}（status: ${authError.status ?? 'n/a'}）`)
+        // 详细错误只打在 console 便于排查，界面统一显示通用文案
         console.error('[signup] supabase error:', authError)
+        setError('出了点小问题，稍后再试')
         return
       }
 
@@ -63,7 +63,7 @@ function SignupForm() {
     <main className="min-h-screen flex flex-col px-6 py-10 bg-bg-canvas">
       <div className="max-w-sm w-full mx-auto flex-1 flex flex-col justify-center">
         <h1 className="font-semibold text-h1 text-ink-primary">
-          带一份小家回来
+          建立一个你的小屋，你希望它是什么样的？
         </h1>
         <p className="mt-2 text-body text-ink-secondary">
           先告我一个地址，我给你起一座
@@ -97,17 +97,17 @@ function SignupForm() {
             loading={loading}
             block
           >
-            开始照顾小家
+            进入小屋
           </Btn>
         </form>
 
         <p className="mt-6 text-small text-ink-secondary text-center">
-          已经有了？{' '}
+          我有小屋了，{' '}
           <Link
             href={`/login${next ? `?next=${encodeURIComponent(next)}` : ''}`}
             className="text-accent-sage font-medium underline-offset-2 hover:underline"
           >
-            回去坐坐
+            我想回家
           </Link>
         </p>
       </div>

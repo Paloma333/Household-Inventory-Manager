@@ -10,8 +10,6 @@ import {
   Tag,
   Package,
   CheckCircle2,
-  Minus,
-  Plus,
   ShoppingCart,
   Bell,
   ChevronRight,
@@ -245,25 +243,6 @@ export default function ItemDetailPage({
         </div>
         <div className="mt-6">
           <Stepper value={item.quantity} onChange={(v) => adjust(v - item.quantity)} large />
-        </div>
-        <div className="mt-6 flex gap-2">
-          <Btn
-            variant="secondary"
-            size="sm"
-            onClick={() => adjust(+1)}
-            iconLeading={<Plus className="h-4 w-4" />}
-          >
-            入手一件
-          </Btn>
-          <Btn
-            variant="secondary"
-            size="sm"
-            onClick={() => adjust(-1)}
-            iconLeading={<Minus className="h-4 w-4" />}
-            disabled={item.quantity <= 0}
-          >
-            用掉一个
-          </Btn>
         </div>
       </Card>
 

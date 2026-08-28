@@ -3,8 +3,8 @@ import Link from 'next/link'
 import { Card } from '@/components/ui/Card'
 
 export const metadata: Metadata = {
-  title: '关于小家',
-  description: '小家（him）— 一个让 AI 帮你记住家里有什么的治愈系库存工具',
+  title: '关于小屋 · 小屋日志',
+  description: '小屋日志（My Cabin Log）— 买东西时拍张照，剩下的交给它',
 }
 
 const FEATURES = [
@@ -26,14 +26,14 @@ export default function AboutPage() {
   return (
     <main className="mx-auto w-full max-w-xl px-6 pt-10 pb-16">
       <header>
-        <p className="text-small text-ink-secondary">him · household inventory manager</p>
-        <h1 className="mt-2 font-semibold text-h1 text-ink-primary">关于小家</h1>
+        <p className="text-small text-ink-secondary">小屋日志 · My Cabin Log</p>
+        <h1 className="mt-2 font-semibold text-h1 text-ink-primary">关于小屋</h1>
       </header>
 
       <section className="mt-6">
         <Card className="p-5">
           <p className="text-body text-ink-secondary leading-relaxed">
-            小家是一个帮你记住家里有什么的库存工具。不用记数、不用查单，
+            小屋日志是一个帮你记录家里有什么的库存工具。不用记数、不用查单，
             买东西时拍张照，剩下的交给它——快用完的时候它会提醒你补货。
           </p>
         </Card>
@@ -66,7 +66,7 @@ export default function AboutPage() {
           href="/"
           className="inline-block text-body font-medium text-sage hover:underline"
         >
-          ← 回到小家
+          ← 回到小屋
         </Link>
       </div>
     </main>
