@@ -34,6 +34,7 @@ const FormSchema = z.object({
   quantity: z.coerce.number().finite().min(0, '不能小于 0').default(1),
   unit: z.string().trim().max(8).optional().or(z.literal('')),
   brand: z.string().trim().max(40).optional().or(z.literal('')),
+  storage_location: z.string().trim().max(80).optional().or(z.literal('')),
   category_id: z.string().uuid().optional().or(z.literal('')),
   expiry_date: z
     .string()
@@ -79,6 +80,7 @@ export default function ManualAddPage() {
       quantity: 1,
       unit: '',
       brand: '',
+      storage_location: '',
       category_id: '',
       expiry_date: '',
       package_quantity: '' as unknown as number,
@@ -124,6 +126,7 @@ export default function ManualAddPage() {
       }
       if (data.unit) payload.unit = data.unit.trim()
       if (data.brand) payload.brand = data.brand.trim()
+      if (data.storage_location) payload.storage_location = data.storage_location.trim()
       if (data.category_id) payload.category_id = data.category_id
       if (data.expiry_date) payload.expiry_date = data.expiry_date
       if (data.package_quantity) payload.package_quantity = Number(data.package_quantity)
@@ -261,12 +264,20 @@ export default function ManualAddPage() {
           </span>
         </button>
 
-        {/* 品牌（折叠/Sprint 1 总是显示） */}
+        {/* 品牌（选填） */}
         <Input
           label="什么牌子（选填）"
           placeholder="例：维达 / 心相印"
           {...register('brand')}
           errorText={errors.brand?.message}
+        />
+
+        {/* 我在哪（选填） */}
+        <Input
+          label="我在哪（选填）"
+          placeholder="例：厨房左侧橱柜"
+          {...register('storage_location')}
+          errorText={errors.storage_location?.message}
         />
 
         {/* 包装 */}

@@ -12,6 +12,7 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        /* 短名（PRD 推荐）：bg-canvas / text-ink-primary / border-hairline 等 */
         canvas: 'var(--bg-canvas)',
         surface: 'var(--bg-surface)',
         elevated: 'var(--bg-elevated)',
@@ -53,6 +54,29 @@ const config: Config = {
           low: 'var(--confidence-low)',
           mid: 'var(--confidence-mid)',
         },
+
+        /* 长名别名：组件层大量使用 bg-bg-canvas / bg-accent-sage / border-border-hairline 等 */
+        'bg-canvas': 'var(--bg-canvas)',
+        'bg-surface': 'var(--bg-surface)',
+        'bg-elevated': 'var(--bg-elevated)',
+        'bg-overlay': 'var(--bg-overlay)',
+        'border-hairline': 'var(--border-hairline)',
+        'border-outline': 'var(--border-outline)',
+        'border-default': 'var(--border-hairline)',
+        'accent-sage': {
+          DEFAULT: 'var(--accent-sage)',
+          soft: 'var(--accent-sage-soft)',
+        },
+        'accent-clay': {
+          DEFAULT: 'var(--accent-clay)',
+          soft: 'var(--accent-clay-soft)',
+        },
+        'accent-honey': {
+          DEFAULT: 'var(--accent-honey)',
+          soft: 'var(--accent-honey-soft)',
+          ink: 'var(--accent-honey-ink)',
+        },
+        'accent-danger': 'var(--accent-danger)',
       },
       borderColor: {
         DEFAULT: 'var(--border-hairline)',

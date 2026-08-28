@@ -2,12 +2,14 @@
 
 import * as React from 'react'
 import Link from 'next/link'
-import { Search, AlertTriangle, Clock } from 'lucide-react'
+import { Search, AlertTriangle, Clock, MapPin, SlidersHorizontal, Trash2, X, Check, FolderOpen } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { Btn } from '@/components/ui/Btn'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Skeleton } from '@/components/ui/Skeleton'
+import { Sheet } from '@/components/ui/Sheet'
+import { toast } from '@/components/ui/Toast'
 import { Events, track } from '@/lib/analytics'
 import { cn } from '@/lib/utils/cn'
 
@@ -28,6 +30,7 @@ interface Item {
   quantity: number
   unit: string | null
   expiry_date: string | null
+  storage_location: string | null
   updated_at: string
   category_id: string | null
   categories: { name: string; parent_id: string | null } | null
@@ -52,6 +55,14 @@ export default function InventoryPage() {
   const [search, setSearch] = React.useState('')
   const [debouncedSearch, setDebouncedSearch] = React.useState('')
   const [activeCategory, setActiveCategory] = React.useState<string>('all')
+
+  // 管理模式
+  const [managing, setManaging] = React.useState(false)
+  const [selected, setSelected] = React.useState<Set<string>>(new Set())
+  const [batchLoading, setBatchLoading] = React.useState(false)
+  const [moveSheetOpen, setMoveSheetOpen] = React.useState(false)
+  const [moveCats, setMoveCats] = React.useState<Array<{ id: string; name: string }>>([])
+  const [moveCatsLoading, setMoveCatsLoading] = React.useState(false)
 
   // 初次加载
   const reload = React.useCallback(async () => {
@@ -103,6 +114,111 @@ export default function InventoryPage() {
       .sort((a, b) => (a.updated_at < b.updated_at ? 1 : -1))
   }, [allItems, activeCategory, debouncedSearch])
 
+  // 打开移动分类面板时加载分类
+  React.useEffect(() => {
+    if (!moveSheetOpen) return
+    let cancelled = false
+    setMoveCatsLoading(true)
+    ;(async () => {
+      try {
+        const res = await fetch('/api/categories')
+        const data = await res.json()
+        if (cancelled) return
+        if (data.error) throw new Error(data.error)
+        const flat: Array<{ id: string; name: string }> = []
+        ;(data.categories ?? []).forEach((c: any) => {
+          flat.push({ id: c.category_id, name: c.name })
+          ;(c.children ?? []).forEach((sub: any) => {
+            flat.push({ id: sub.category_id, name: `${c.name} / ${sub.name}` })
+          })
+        })
+        setMoveCats(flat)
+      } catch (e: any) {
+        if (!cancelled) toast.error(e?.message ?? '分类加载失败')
+      } finally {
+        if (!cancelled) setMoveCatsLoading(false)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [moveSheetOpen])
+
+  // 管理：切换选中
+  const toggleSelect = React.useCallback((itemId: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (next.has(itemId)) next.delete(itemId)
+      else next.add(itemId)
+      return next
+    })
+  }, [])
+
+  const exitManage = React.useCallback(() => {
+    setManaging(false)
+    setSelected(new Set())
+    setMoveSheetOpen(false)
+  }, [])
+
+  // 批量删除
+  const batchDelete = React.useCallback(async () => {
+    if (selected.size === 0) return
+    const names = (allItems ?? [])
+      .filter((it) => selected.has(it.item_id))
+      .slice(0, 3)
+      .map((it) => `「${it.canonical_name}」`)
+      .join('、')
+    const ok = window.confirm(
+      `把选中的 ${selected.size} 件物品放进回收站？\n${names}${selected.size > 3 ? ' 等' : ''}`
+    )
+    if (!ok) return
+    setBatchLoading(true)
+    try {
+      const res = await fetch('/api/items/batch-delete', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ item_ids: Array.from(selected) }),
+      })
+      const json = await res.json()
+      if (!res.ok || json.error) throw new Error(json.error || '删除失败')
+      toast.info('已放进回收站', { durationMs: 1800 })
+      exitManage()
+      await reload()
+    } catch (e: any) {
+      toast.error(e?.message ?? '删除失败')
+    } finally {
+      setBatchLoading(false)
+    }
+  }, [selected, allItems, exitManage, reload])
+
+  // 批量移动分类
+  const batchMove = React.useCallback(
+    async (categoryId: string | null) => {
+      if (selected.size === 0) return
+      setBatchLoading(true)
+      try {
+        const res = await fetch('/api/items/batch-update-category', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            item_ids: Array.from(selected),
+            category_id: categoryId,
+          }),
+        })
+        const json = await res.json()
+        if (!res.ok || json.error) throw new Error(json.error || '移动失败')
+        toast.info('分类已更新', { durationMs: 1800 })
+        exitManage()
+        await reload()
+      } catch (e: any) {
+        toast.error(e?.message ?? '移动失败')
+      } finally {
+        setBatchLoading(false)
+      }
+    },
+    [selected, exitManage, reload]
+  )
+
   // 分类 chip 聚合
   const categoryChips = React.useMemo(() => {
     const map = new Map<string, { id: string; name: string; count: number }>()
@@ -141,13 +257,37 @@ export default function InventoryPage() {
 
   return (
     <div className="px-4 pt-6 pb-24 sm:px-6">
-      <header className="px-2">
-        <h1 className="font-semibold text-h1 text-ink-primary">库存</h1>
-        <p className="mt-1 text-small text-ink-secondary">
-          {allItems
-            ? `${allItems.length} 件 · ${categoryChips.length} 个分类`
-            : '加载中'}
-        </p>
+      <header className="px-2 flex items-start justify-between">
+        <div>
+          <h1 className="font-semibold text-h1 text-ink-primary">
+            {managing ? '管理物品' : '库存'}
+          </h1>
+          <p className="mt-1 text-small text-ink-secondary">
+            {allItems
+              ? managing
+                ? `已选 ${selected.size} / ${allItems.length} 件`
+                : `${allItems.length} 件 · ${categoryChips.length} 个分类`
+              : '加载中'}
+          </p>
+        </div>
+        {allItems && allItems.length > 0 && (
+          <button
+            type="button"
+            onClick={() => {
+              if (managing) exitManage()
+              else setManaging(true)
+            }}
+            className="mt-1 inline-flex items-center gap-1 px-3 h-8 rounded-pill text-small border transition-colors duration-tap shrink-0"
+            style={{
+              backgroundColor: managing ? 'var(--bg-surface)' : 'transparent',
+              borderColor: 'var(--border-hairline)',
+              color: managing ? 'var(--ink-primary)' : 'var(--ink-secondary)',
+            }}
+          >
+            {managing ? <X className="h-3.5 w-3.5" /> : <SlidersHorizontal className="h-3.5 w-3.5" />}
+            {managing ? '完成' : '管理'}
+          </button>
+        )}
       </header>
 
       {/* 搜索框 */}
@@ -185,6 +325,75 @@ export default function InventoryPage() {
           ))}
         </div>
       )}
+
+      {/* 管理模式底部操作栏 */}
+      {managing && allItems && allItems.length > 0 && (
+        <div className="fixed bottom-[72px] left-0 right-0 z-20 px-4">
+          <div className="max-w-md mx-auto flex items-center gap-2 p-2 rounded-lg bg-bg-elevated border border-border-hairline shadow-lift">
+            <Btn
+              variant="secondary"
+              size="sm"
+              className="flex-1"
+              disabled={selected.size === 0 || batchLoading}
+              onClick={() => setMoveSheetOpen(true)}
+              iconLeading={<FolderOpen className="h-4 w-4" />}
+            >
+              移动到
+            </Btn>
+            <Btn
+              variant="danger"
+              size="sm"
+              className="flex-1"
+              disabled={selected.size === 0 || batchLoading}
+              onClick={batchDelete}
+              iconLeading={<Trash2 className="h-4 w-4" />}
+            >
+              删除
+            </Btn>
+          </div>
+        </div>
+      )}
+
+      {/* 移动到分类面板 */}
+      <Sheet
+        open={moveSheetOpen}
+        onOpenChange={(o) => !o && setMoveSheetOpen(false)}
+        title="移动到分类"
+      >
+          <div className="flex flex-col gap-2">
+            {moveCatsLoading ? (
+              <Skeleton className="h-20 w-full" />
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => batchMove(null)}
+                  disabled={batchLoading}
+                  className={cn(
+                    'w-full text-left px-3 py-3 rounded-md border text-body transition-colors duration-tap',
+                    'bg-bg-surface border-border-hairline text-ink-primary hover:bg-bg-elevated'
+                  )}
+                >
+                  未分类
+                </button>
+                {moveCats.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => batchMove(c.id)}
+                    disabled={batchLoading}
+                    className={cn(
+                      'w-full text-left px-3 py-3 rounded-md border text-body transition-colors duration-tap',
+                      'bg-bg-surface border-border-hairline text-ink-primary hover:bg-bg-elevated'
+                    )}
+                  >
+                    {c.name}
+                  </button>
+                ))}
+              </>
+            )}
+          </div>
+      </Sheet>
 
       {/* 状态：loading / error / empty / list */}
       <div className="mt-5 px-2">
@@ -239,7 +448,13 @@ export default function InventoryPage() {
                 </div>
                 <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                   {g.items.map((it) => (
-                    <ProductTile key={it.item_id} item={it} />
+                    <ProductTile
+                      key={it.item_id}
+                      item={it}
+                      managing={managing}
+                      selected={selected.has(it.item_id)}
+                      onToggle={() => toggleSelect(it.item_id)}
+                    />
                   ))}
                 </div>
               </section>
@@ -277,7 +492,17 @@ function CategoryChip({
   )
 }
 
-function ProductTile({ item }: { item: Item }) {
+function ProductTile({
+  item,
+  managing,
+  selected,
+  onToggle,
+}: {
+  item: Item
+  managing: boolean
+  selected: boolean
+  onToggle: () => void
+}) {
   // 「少」只看用户主动勾了「快用完时提醒我」的（enabled 规则），
   // 数量=1 不再自动提示
   const rule = item.low_stock_rules
@@ -290,52 +515,87 @@ function ProductTile({ item }: { item: Item }) {
     return exp >= Date.now() && exp <= sevenDaysLater
   })()
 
+  const cardBody = (
+    <Card
+      className={cn(
+        'relative p-3 h-full flex flex-col transition-transform duration-tap overflow-hidden',
+        managing
+          ? 'cursor-pointer'
+          : 'cursor-pointer active:scale-[0.98]',
+        selected && 'ring-2 ring-accent-sage ring-offset-2 ring-offset-bg-canvas',
+        lowStock && 'border-accent-clay/50'
+      )}
+      onClick={managing ? onToggle : undefined}
+    >
+      {/* 管理模式复选框 */}
+      {managing && (
+        <span
+          className={cn(
+            'absolute top-2 right-2 z-10 h-5 w-5 rounded-md border flex items-center justify-center transition-colors duration-tap',
+            selected
+              ? 'bg-accent-sage border-accent-sage text-bg-elevated'
+              : 'bg-bg-elevated border-border-outline text-transparent'
+          )}
+          aria-hidden
+        >
+          <Check className="h-3.5 w-3.5" />
+        </span>
+      )}
+
+      {/* 名称 + 徽章 */}
+      <div className={managing ? 'pr-6' : undefined}>
+        <p className="text-small font-semibold text-ink-primary break-words line-clamp-2">
+          {item.canonical_name}
+        </p>
+      </div>
+      <div className="mt-1.5 flex flex-wrap gap-1">
+        {lowStock && (
+          <span
+            title={`快用完了：剩 ${item.quantity} ≤ ${rule!.threshold}${item.unit ?? '个'}`}
+            className="inline-flex items-center gap-0.5 px-1.5 h-5 rounded-xs bg-accent-clay-soft text-accent-clay text-micro"
+          >
+            <AlertTriangle className="h-3 w-3" /> 需补货
+          </span>
+        )}
+        {expiringSoon && (
+          <span
+            title={`${item.expiry_date} 到期`}
+            className="inline-flex items-center gap-0.5 px-1.5 h-5 rounded-xs bg-honey-soft text-honey-ink text-micro"
+          >
+            <Clock className="h-3 w-3" /> 临期
+          </span>
+        )}
+      </div>
+
+      {/* 存放位置（最多 10 字） */}
+      {item.storage_location && (
+        <div className="mt-2 flex items-center gap-1 text-micro text-ink-tertiary">
+          <MapPin className="h-3 w-3 shrink-0" />
+          <span className="truncate max-w-[10ch]" title={item.storage_location}>
+            {item.storage_location}
+          </span>
+        </div>
+      )}
+
+      {/* 数量：撑到底部 */}
+      <div className="mt-auto pt-3 flex items-end justify-between">
+        <p className="text-micro text-ink-tertiary truncate">
+          {item.brand ?? ''}
+        </p>
+        <p className="text-h2 font-num font-semibold text-accent-sage leading-none">
+          {Math.round(item.quantity * 100) / 100}
+          <span className="text-micro text-ink-secondary font-normal ml-0.5">
+            {item.unit ?? '个'}
+          </span>
+        </p>
+      </div>
+    </Card>
+  )
+
+  if (managing) return cardBody
   return (
     <Link href={`/inventory/${item.item_id}`} className="block">
-      <Card
-        className={cn(
-          'relative p-3 h-full flex flex-col active:scale-[0.98] transition-transform duration-tap cursor-pointer overflow-hidden',
-          lowStock && 'border-accent-clay/50'
-        )}
-      >
-        {/* 名称 + 徽章 */}
-        <div>
-          <p className="text-small font-semibold text-ink-primary break-words line-clamp-2">
-            {item.canonical_name}
-          </p>
-        </div>
-        <div className="mt-1.5 flex flex-wrap gap-1">
-          {lowStock && (
-            <span
-              title={`快用完了：剩 ${item.quantity} ≤ ${rule!.threshold}${item.unit ?? '个'}`}
-              className="inline-flex items-center gap-0.5 px-1.5 h-5 rounded-xs bg-accent-clay-soft text-accent-clay text-micro"
-            >
-              <AlertTriangle className="h-3 w-3" /> 需补货
-            </span>
-          )}
-          {expiringSoon && (
-            <span
-              title={`${item.expiry_date} 到期`}
-              className="inline-flex items-center gap-0.5 px-1.5 h-5 rounded-xs bg-honey-soft text-honey-ink text-micro"
-            >
-              <Clock className="h-3 w-3" /> 临期
-            </span>
-          )}
-        </div>
-
-        {/* 数量：撑到底部 */}
-        <div className="mt-auto pt-3 flex items-end justify-between">
-          <p className="text-micro text-ink-tertiary truncate">
-            {item.brand ?? ''}
-          </p>
-          <p className="text-h2 font-num font-semibold text-accent-sage leading-none">
-            {Math.round(item.quantity * 100) / 100}
-            <span className="text-micro text-ink-secondary font-normal ml-0.5">
-              {item.unit ?? '个'}
-            </span>
-          </p>
-        </div>
-      </Card>
+      {cardBody}
     </Link>
   )
 }

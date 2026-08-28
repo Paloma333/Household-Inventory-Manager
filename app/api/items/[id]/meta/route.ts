@@ -15,6 +15,7 @@ const MetaPatchSchema = z.object({
   canonical_name: z.string().trim().min(1).max(80).optional(),
   brand: z.string().trim().max(40).nullable().optional(),
   unit: z.string().trim().max(8).nullable().optional(),
+  storage_location: z.string().trim().max(80).nullable().optional(),
   package_quantity: z.number().finite().positive().max(999).nullable().optional(),
   expiry_date: z
     .string()

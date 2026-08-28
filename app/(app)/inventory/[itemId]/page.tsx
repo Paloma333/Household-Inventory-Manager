@@ -14,6 +14,7 @@ import {
   Bell,
   ChevronRight,
   RotateCcw,
+  MapPin,
 } from 'lucide-react'
 import { Btn } from '@/components/ui/Btn'
 import { Card } from '@/components/ui/Card'
@@ -46,6 +47,7 @@ interface Item {
   unit: string | null
   package_quantity: number | null
   expiry_date: string | null
+  storage_location: string | null
   created_at: string
   updated_at: string
   category_id: string | null
@@ -249,6 +251,9 @@ export default function ItemDetailPage({
       {/* 元数据 chips */}
       <section className="mt-5 px-2 flex flex-wrap gap-2">
         {item.brand && <MetaChip icon={<Tag className="h-3.5 w-3.5" />}>{item.brand}</MetaChip>}
+        {item.storage_location && (
+          <MetaChip icon={<MapPin className="h-3.5 w-3.5" />}>{item.storage_location}</MetaChip>
+        )}
         {item.unit && <MetaChip icon={<Package className="h-3.5 w-3.5" />}>{item.unit}</MetaChip>}
         {item.package_quantity && (
           <MetaChip icon={<ShoppingCart className="h-3.5 w-3.5" />}>
@@ -422,6 +427,7 @@ function EditItemSheet({
   const [unit, setUnit] = React.useState(item.unit ?? '')
   const [pkg, setPkg] = React.useState(item.package_quantity?.toString() ?? '')
   const [expiry, setExpiry] = React.useState(item.expiry_date ?? '')
+  const [storageLocation, setStorageLocation] = React.useState(item.storage_location ?? '')
   const [categoryId, setCategoryId] = React.useState(item.category_id ?? '')
   const [saving, setSaving] = React.useState(false)
   const [err, setErr] = React.useState<string | null>(null)
@@ -451,6 +457,7 @@ function EditItemSheet({
           unit: unit.trim() || null,
           package_quantity: pkg ? Number(pkg) : null,
           expiry_date: expiry || null,
+          storage_location: storageLocation.trim() || null,
           category_id: categoryId || null,
         }),
       })
@@ -489,6 +496,12 @@ function EditItemSheet({
           label="一包装多少"
           value={pkg}
           onChange={(e) => setPkg(e.target.value)}
+        />
+        <Input
+          label="我在哪"
+          placeholder="例：厨房左侧橱柜"
+          value={storageLocation}
+          onChange={(e) => setStorageLocation(e.target.value)}
         />
         <Input kind="date" label="过期" value={expiry} onChange={(e) => setExpiry(e.target.value)} />
 

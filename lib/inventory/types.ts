@@ -37,6 +37,7 @@ export interface Item {
   unit?: string | null
   package_quantity?: number | null
   expiry_date?: string | null
+  storage_location?: string | null
   deleted_at?: string | null
   created_at: string
   updated_at: string

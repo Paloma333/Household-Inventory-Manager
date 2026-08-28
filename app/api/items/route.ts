@@ -42,7 +42,7 @@ export async function GET() {
     .from('items')
     .select(
       `
-      item_id, canonical_name, brand, quantity, unit, expiry_date, created_at, updated_at,
+      item_id, canonical_name, brand, quantity, unit, expiry_date, storage_location, created_at, updated_at,
       category_id,
       categories:category_id ( name, parent_id ),
       low_stock_rules ( threshold, enabled )
@@ -64,6 +64,7 @@ const CreateItemSchema = z.object({
   quantity: z.number().finite().min(0).default(1),
   unit: z.string().trim().max(8).optional().nullable(),
   brand: z.string().trim().max(40).optional().nullable(),
+  storage_location: z.string().trim().max(80).optional().nullable(),
   category_id: z.string().uuid().optional().nullable(),
   expiry_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, '日期格式应为 YYYY-MM-DD').optional().nullable(),
   package_quantity: z.number().finite().positive().optional().nullable(),
@@ -122,6 +123,7 @@ export async function POST(request: NextRequest) {
       quantity: body.quantity,
       unit: body.unit ?? null,
       brand: body.brand ?? null,
+      storage_location: body.storage_location ?? null,
       category_id: body.category_id ?? null,
       expiry_date: body.expiry_date ?? null,
       package_quantity: body.package_quantity ?? null,
