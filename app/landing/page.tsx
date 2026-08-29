@@ -6,10 +6,6 @@ import {
   ListChecks,
   Share2,
   Sparkles,
-  House,
-  Palette,
-  Wind,
-  Boxes,
 } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 
@@ -47,31 +43,6 @@ const FEATURES = [
     title: '一家人共用一个家',
     desc: '邀请另一半共用同一个库存；回收站 30 天可恢复，导出 CSV / JSON 数据随时带走。',
   },
-]
-
-const DESIGN_INTENT = [
-  {
-    icon: House,
-    title: '动森风格，治愈小岛',
-    desc: '奶油羊皮纸底 + 薄荷青 #19C8B9 + 暖棕文字，按钮有"按下去"的 3D 手感。视觉基于 animal-island-ui 设计系统。',
-  },
-  {
-    icon: Palette,
-    title: '生活感，而非应用感',
-    desc: '打开它不是打开一个工作台，是"走进自己刚收拾过的小厨房"。没有大喇叭、没有庆祝动画。',
-  },
-  {
-    icon: Wind,
-    title: '克制，是尊重',
-    desc: '能不说话就不说话。提示只出现在该出现的时候：快用完了、快过期了、该补货了。',
-  },
-]
-
-const STACK = [
-  'Next.js 14 (App Router) + TypeScript + Tailwind',
-  'Supabase：Postgres · Auth · Storage · RLS 行级安全',
-  'Qwen3.6-Flash 视觉识别，本地 mock 兜底，三档置信度确认',
-  '19 个 API 路由 · PWA 可加主屏幕 · 设计系统展示页',
 ]
 
 export default function LandingPage() {
@@ -131,48 +102,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── 设计意图 ── */}
-      <section id="design" className="mt-16">
-        <h2 className="text-h3 font-semibold text-ink-primary text-center">设计意图</h2>
-        <p className="mt-2 text-small text-ink-secondary text-center">
-          一个不打扰你的工具，应该长什么样
-        </p>
-        <div className="mt-6 flex flex-col gap-3">
-          {DESIGN_INTENT.map((d) => (
-            <Card key={d.title} className="p-5 flex gap-4">
-              <div className="h-10 w-10 rounded-md bg-bg-elevated border border-border-hairline grid place-items-center text-ink-secondary shrink-0">
-                <d.icon className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-body font-medium text-ink-primary">{d.title}</p>
-                <p className="mt-1 text-small text-ink-secondary leading-relaxed">
-                  {d.desc}
-                </p>
-              </div>
-            </Card>
-          ))}
-        </div>
-        <blockquote className="mt-6 px-5 py-4 rounded-md bg-accent-sage-soft text-body text-ink-primary leading-relaxed">
-          「绝对禁止：渐变彩色卡片墙。」
-          <span className="block mt-1 text-small text-ink-secondary">
-            —— 写在产品 PRD 第 0 页的第一行
-          </span>
-        </blockquote>
-      </section>
-
-      {/* ── 技术栈 ── */}
-      <section className="mt-16">
-        <h2 className="text-h3 font-semibold text-ink-primary text-center">技术栈</h2>
-        <ul className="mt-6 flex flex-col gap-2">
-          {STACK.map((s) => (
-            <Card key={s} className="px-4 py-3 text-small text-ink-secondary flex items-center gap-2">
-              <Boxes className="h-3.5 w-3.5 text-accent-sage shrink-0" />
-              {s}
-            </Card>
-          ))}
-        </ul>
-      </section>
-
       {/* ── CTA ── */}
       <section className="mt-16 text-center">
         <Card className="p-8">
@@ -199,10 +128,10 @@ export default function LandingPage() {
           href="/about"
           className="text-small text-ink-secondary underline-offset-2 hover:underline"
         >
-          关于小屋
+          了解小屋
         </Link>
         <p className="mt-3 text-micro text-ink-tertiary">
-          My Cabin Log · 2026 · 设计文档：PRD v1.1（UI 交互规格）
+          My Cabin Log · 2026
         </p>
       </footer>
     </main>

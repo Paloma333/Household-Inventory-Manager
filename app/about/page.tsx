@@ -15,13 +15,6 @@ const FEATURES = [
   'PWA：加到主屏幕，接近原生 App 体验',
 ]
 
-const STACK = [
-  'Next.js 14 (App Router) · TypeScript · Tailwind',
-  'Supabase：Postgres + Auth + Storage + RLS',
-  'Qwen3.6-Flash 视觉识别（含本地 mock 兜底）',
-  'React Query · Zustand · react-hook-form · zod',
-]
-
 export default function AboutPage() {
   return (
     <main className="mx-auto w-full max-w-xl px-6 pt-10 pb-16">
@@ -45,17 +38,6 @@ export default function AboutPage() {
           {FEATURES.map((f) => (
             <Card key={f} className="p-4 text-body text-ink-primary">
               {f}
-            </Card>
-          ))}
-        </ul>
-      </section>
-
-      <section className="mt-6">
-        <h2 className="text-h3 font-semibold mb-3">技术栈</h2>
-        <ul className="flex flex-col gap-2">
-          {STACK.map((s) => (
-            <Card key={s} className="p-4 text-body text-ink-secondary">
-              {s}
             </Card>
           ))}
         </ul>

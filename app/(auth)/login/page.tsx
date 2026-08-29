@@ -107,7 +107,7 @@ function LoginForm() {
             href="/landing"
             className="text-micro text-ink-tertiary underline-offset-2 hover:underline"
           >
-            作品集 / 项目介绍
+            了解小屋
           </Link>
         </p>
       </div>
