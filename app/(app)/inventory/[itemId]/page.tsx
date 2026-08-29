@@ -15,6 +15,8 @@ import {
   ChevronRight,
   RotateCcw,
   MapPin,
+  Check,
+  X,
 } from 'lucide-react'
 import { Btn } from '@/components/ui/Btn'
 import { Card } from '@/components/ui/Card'
@@ -251,9 +253,7 @@ export default function ItemDetailPage({
       {/* 元数据 chips */}
       <section className="mt-5 px-2 flex flex-wrap gap-2">
         {item.brand && <MetaChip icon={<Tag className="h-3.5 w-3.5" />}>{item.brand}</MetaChip>}
-        {item.storage_location && (
-          <MetaChip icon={<MapPin className="h-3.5 w-3.5" />}>{item.storage_location}</MetaChip>
-        )}
+        <LocationChip item={item} onSaved={reload} />
         {item.unit && <MetaChip icon={<Package className="h-3.5 w-3.5" />}>{item.unit}</MetaChip>}
         {item.package_quantity && (
           <MetaChip icon={<ShoppingCart className="h-3.5 w-3.5" />}>
@@ -381,20 +381,126 @@ function MetaChip({
   )
 }
 
+function LocationChip({
+  item,
+  onSaved,
+}: {
+  item: Item
+  onSaved: () => void
+}) {
+  const [editing, setEditing] = React.useState(false)
+  const [value, setValue] = React.useState(item.storage_location ?? '')
+  const [saving, setSaving] = React.useState(false)
+
+  React.useEffect(() => {
+    setValue(item.storage_location ?? '')
+  }, [item.storage_location])
+
+  const save = async () => {
+    setSaving(true)
+    try {
+      const res = await fetch(`/api/items/${item.item_id}/meta`, {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ storage_location: value.trim() || null }),
+      })
+      const json = await res.json()
+      if (!res.ok || json.error) throw new Error(json.error || '保存失败')
+      toast.info('已更新', { durationMs: 1200 })
+      setEditing(false)
+      onSaved()
+    } catch (e: any) {
+      toast.error(e?.message ?? '保存失败')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (editing) {
+    return (
+      <div className="flex items-center gap-2 w-full">
+        <div className="flex-1">
+          <Input
+            placeholder="例：厨房左侧橱柜"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') void save()
+              if (e.key === 'Escape') {
+                setEditing(false)
+                setValue(item.storage_location ?? '')
+              }
+            }}
+            autoFocus
+          />
+        </div>
+        <Btn
+          size="sm"
+          onClick={() => void save()}
+          loading={saving}
+          iconOnly={<Check className="h-4 w-4" />}
+          aria-label="保存"
+        />
+        <Btn
+          size="sm"
+          variant="secondary"
+          onClick={() => {
+            setEditing(false)
+            setValue(item.storage_location ?? '')
+          }}
+          iconOnly={<X className="h-4 w-4" />}
+          aria-label="取消"
+        />
+      </div>
+    )
+  }
+
+  if (item.storage_location) {
+    return (
+      <button
+        type="button"
+        onClick={() => setEditing(true)}
+        className="inline-flex"
+        aria-label="编辑存放位置"
+      >
+        <MetaChip icon={<MapPin className="h-3.5 w-3.5" />}>
+          {item.storage_location}
+        </MetaChip>
+      </button>
+    )
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => setEditing(true)}
+      className="inline-flex"
+      aria-label="添加存放位置"
+    >
+      <MetaChip icon={<MapPin className="h-3.5 w-3.5" />}>+ 我在哪</MetaChip>
+    </button>
+  )
+}
+
 function describeEvent(e: Event, item: Item): string {
-  const sign = e.quantity_change > 0 ? '+' : ''
-  const qty = `${sign}${e.quantity_change}${item.unit ? item.unit : ''}`
+  const unit = item.unit ? item.unit : ''
+  const abs = Math.abs(e.quantity_change)
+  const qty = `${e.quantity_change > 0 ? '+' : e.quantity_change < 0 ? '−' : ''}${abs}${unit}`
+
+  if (e.quantity_change > 0) return `新增 · ${qty} · 家里现在 ${e.new_quantity}`
+  if (e.quantity_change < 0) return `用掉 · ${qty} · 家里现在 ${e.new_quantity}`
+
   switch (e.event_type) {
     case 'purchase':
-      return `购入 · ${qty} · 家里现在 ${e.new_quantity}`
+      return `购入 · 家里现在 ${e.new_quantity}`
     case 'consume':
-      return `用掉 · ${qty} · 家里现在 ${e.new_quantity}`
+      return `用掉 · 家里现在 ${e.new_quantity}`
     case 'adjust':
-      return `调整 · ${qty} · 家里现在 ${e.new_quantity}`
+      return `调整 · 家里现在 ${e.new_quantity}`
     case 'merge':
-      return `合并 · ${qty} · 家里现在 ${e.new_quantity}`
+      return `合并 · 家里现在 ${e.new_quantity}`
     case 'restock_confirm':
-      return `补货 · ${qty} · 家里现在 ${e.new_quantity}`
+      return `补货 · 家里现在 ${e.new_quantity}`
   }
 }
 
