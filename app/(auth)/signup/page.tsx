@@ -25,6 +25,8 @@ function SignupForm() {
   const [error, setError] = React.useState<string | null>(null)
   // Supabase 开启邮箱确认时：注册成功但还没点邮件链接
   const [awaitingConfirm, setAwaitingConfirm] = React.useState(false)
+  // 邮箱已注册时的引导提示
+  const [existsHint, setExistsHint] = React.useState(false)
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -42,8 +44,16 @@ function SignupForm() {
       })
 
       if (authError) {
-        // 详细错误只打在 console 便于排查，界面统一显示通用文案
+        // 详细错误只打在 console 便于排查，界面按场景显示文案
         console.error('[signup] supabase error:', authError)
+
+        // 邮箱已注册：引导直接登录（账号已存在，无需再建）
+        if (authError.code === 'user_already_exists' || /already registered/i.test(authError.message)) {
+          setError('这个邮箱已经建过小屋了，直接回家就好')
+          setExistsHint(true)
+          return
+        }
+
         setError('出了点小问题，稍后再试')
         return
       }
@@ -123,7 +133,13 @@ function SignupForm() {
             type="email"
             autoComplete="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value)
+              if (existsHint) {
+                setExistsHint(false)
+                setError(null)
+              }
+            }}
             required
           />
           <Input
@@ -147,6 +163,15 @@ function SignupForm() {
             进入小屋
           </Btn>
         </form>
+
+        {existsHint && (
+          <Link
+            href={`/login?next=${encodeURIComponent(next)}&email=${encodeURIComponent(email)}`}
+            className="mt-4 block text-center text-small text-accent-sage font-medium underline-offset-2 hover:underline"
+          >
+            用这个邮箱回家（去登录）
+          </Link>
+        )}
 
         <p className="mt-6 text-small text-ink-secondary text-center">
           我有小屋了，{' '}

@@ -20,7 +20,7 @@ function LoginForm() {
   const router = useRouter()
   const search = useSearchParams()
   const next = search.get('next') || '/'
-  const [email, setEmail] = React.useState('')
+  const [email, setEmail] = React.useState(search.get('email') || '')
   const [password, setPassword] = React.useState('')
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
@@ -38,10 +38,27 @@ function LoginForm() {
       })
 
       if (authError) {
-        // 详细错误只打在 console 便于排查，界面统一显示通用文案
+        // 详细错误只打在 console 便于排查，界面按场景显示文案
         console.error('[login] supabase error:', authError)
-        setError('出了点小问题，稍后再试')
+
+        if (authError.code === 'invalid_credentials' || /invalid login credentials/i.test(authError.message)) {
+          setError('邮箱或密码不太对，再想想？')
+        } else if (authError.code === 'email_not_confirmed') {
+          setError('这个邮箱还没确认过，去邮箱里点一下链接')
+        } else if (authError.code === 'user_not_found' || /user not found/i.test(authError.message)) {
+          setError('还没见过这个邮箱，先建一个小屋吧')
+        } else {
+          setError('出了点小问题，稍后再试')
+        }
         return
+      }
+
+      // 幂等兜底：补建 public.users 镜像 + household
+      // （覆盖历史账号、确认邮件期间注册等 bootstrap 没跑过的情况）
+      try {
+        await fetch('/api/bootstrap/household', { method: 'POST' })
+      } catch (e) {
+        console.error('[login] bootstrap failed:', e)
       }
 
       router.push(next)
