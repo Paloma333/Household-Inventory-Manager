@@ -22,6 +22,8 @@ export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   selected?: boolean
   /** 左滑删除状态，外层会控制色 */
   swiping?: boolean
+  /** 无边框风格：用于首页大卡片 */
+  borderless?: boolean
   as?: 'div' | 'button' | 'li'
 }
 
@@ -36,13 +38,15 @@ const kindClasses: Record<CardKind, string> = {
 }
 
 export const Card = React.forwardRef<HTMLDivElement, CardProps>(
-  ({ kind = 'default', selected, className, children, ...rest }, ref) => {
+  ({ kind = 'default', selected, borderless, className, children, ...rest }, ref) => {
     return (
       <div
         ref={ref}
         className={cn(
-          'rounded-md border border-border-hairline',
           'transition-[background-color,border-color,transform] duration-tap ease-out-quart',
+          borderless
+            ? 'rounded-2xl border-0'
+            : 'rounded-md border border-border-hairline',
           kindClasses[kind],
           selected && 'border-accent-sage border-2',
           className

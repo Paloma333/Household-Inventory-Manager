@@ -106,7 +106,7 @@ export default function HomePage() {
       {/* 欢迎语 — 动森燕尾缎带 */}
       <header className="enter-up relative">
         <Title size="large">
-          {greeting}，{data?.householdName ?? '我的小屋'}
+          {greeting}，欢迎回家
         </Title>
         <div className="mt-3 text-body text-ink-secondary num-roll">
           {data === null ? (
@@ -162,7 +162,7 @@ export default function HomePage() {
         <section className="mt-6 flex flex-col gap-3">
           {lowStock > 0 && (
             <Link href="/inventory" className="block">
-              <Card kind="lowStock" className="px-4 py-3 flex items-center gap-3 active:scale-[0.99]">
+              <Card borderless className="px-4 py-3.5 flex items-center gap-3 bg-[#fbece6] active:scale-[0.99]">
                 <AlertTriangle className="h-5 w-5 text-accent-clay" strokeWidth={1.5} />
                 <div className="flex-1 min-w-0">
                   <p className="text-body font-semibold">快用完了</p>
@@ -170,13 +170,13 @@ export default function HomePage() {
                     {lowStock} 件东西快见底了，去补一补？
                   </p>
                 </div>
-                <ArrowRight className="h-4 w-4 text-accent-clay" />
+                <ArrowRight className="h-4 w-4 text-accent-clay/70" />
               </Card>
             </Link>
           )}
           {expiringSoon > 0 && (
             <Link href="/inventory" className="block">
-              <Card className="px-4 py-3 flex items-center gap-3 bg-accent-honey/15 border-accent-honey/40 active:scale-[0.99]">
+              <Card borderless className="px-4 py-3.5 flex items-center gap-3 bg-[#fdf6de] active:scale-[0.99]">
                 <Clock className="h-5 w-5 text-accent-honey" strokeWidth={1.5} />
                 <div className="flex-1 min-w-0">
                   <p className="text-body font-semibold">7 天内有东西过期</p>
@@ -184,7 +184,7 @@ export default function HomePage() {
                     {expiringSoon} 件快到保质期了
                   </p>
                 </div>
-                <ArrowRight className="h-4 w-4 text-accent-honey" />
+                <ArrowRight className="h-4 w-4 text-accent-honey/70" />
               </Card>
             </Link>
           )}
@@ -198,7 +198,7 @@ export default function HomePage() {
           <ul className="mt-3 flex flex-col gap-2">
             {data.recentEvents.slice(0, 3).map((e) => (
               <li key={e.event_id}>
-                <Card className="px-4 py-3 flex items-center gap-3">
+                <Card borderless className="px-4 py-3 flex items-center gap-3 bg-bg-surface">
                   <span
                     aria-hidden
                     className={cn(
@@ -263,7 +263,7 @@ export default function HomePage() {
       {data && data.itemCount > 0 && (
         <section className="mt-8">
           <Link href="/inventory" className="block">
-            <Card className="px-4 py-3 flex items-center gap-3 active:bg-bg-elevated">
+            <Card borderless className="px-4 py-3 flex items-center gap-3 bg-bg-surface active:bg-bg-elevated">
               <Sparkles className="h-5 w-5 text-accent-sage" strokeWidth={1.5} />
               <div className="flex-1">
                 <p className="text-body font-semibold">看看小屋现在有什么</p>
