@@ -99,6 +99,14 @@ function LoginForm() {
             required
             errorText={error || undefined}
           />
+          <div className="flex justify-end">
+            <Link
+              href="/forgot-password"
+              className="text-small text-ink-tertiary underline-offset-2 hover:underline"
+            >
+              忘记密码？
+            </Link>
+          </div>
           <Btn
             type="submit"
             size="xl"
