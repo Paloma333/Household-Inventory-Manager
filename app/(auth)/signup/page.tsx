@@ -23,6 +23,8 @@ function SignupForm() {
   const [password, setPassword] = React.useState('')
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
+  // Supabase 开启邮箱确认时：注册成功但还没点邮件链接
+  const [awaitingConfirm, setAwaitingConfirm] = React.useState(false)
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -31,7 +33,7 @@ function SignupForm() {
 
     try {
       const supabase = getBrowserSupabase()
-      const { error: authError } = await supabase.auth.signUp({
+      const { data, error: authError } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -46,6 +48,12 @@ function SignupForm() {
         return
       }
 
+      // 邮箱确认未完成：Supabase 不发 session，先提示用户去邮箱点链接
+      if (!data.session) {
+        setAwaitingConfirm(true)
+        return
+      }
+
       // Supabase 默认邮箱验证；这版开发期把"自动建户"的逻辑同时放在前端 + 后端
       // await 后端 route 完成 user 镜像 + household 创建
       await fetch('/api/bootstrap/household', { method: 'POST' })
@@ -57,6 +65,45 @@ function SignupForm() {
     } finally {
       setLoading(false)
     }
+  }
+
+  // 注册成功，等邮箱确认
+  if (awaitingConfirm) {
+    return (
+      <main className="min-h-screen flex flex-col px-6 py-10 bg-bg-canvas">
+        <div className="max-w-sm w-full mx-auto flex-1 flex flex-col justify-center">
+          <h1 className="font-semibold text-h1 text-ink-primary">
+            信已经寄到你邮箱啦
+          </h1>
+          <p className="mt-3 text-body text-ink-secondary leading-relaxed">
+            点开邮件里的链接，确认一下就能进小屋了。
+            <br />
+            没收到的话，翻一翻垃圾邮件夹。
+          </p>
+
+          <div className="mt-8 flex flex-col gap-3">
+            <Btn
+              onClick={() => {
+                setAwaitingConfirm(false)
+                setEmail('')
+                setPassword('')
+              }}
+              variant="secondary"
+              size="xl"
+              block
+            >
+              换一个邮箱重新建
+            </Btn>
+            <Link
+              href={`/login${next ? `?next=${encodeURIComponent(next)}` : ''}`}
+              className="text-center text-small text-accent-sage font-medium underline-offset-2 hover:underline"
+            >
+              我有小屋了，我想回家
+            </Link>
+          </div>
+        </div>
+      </main>
+    )
   }
 
   return (
