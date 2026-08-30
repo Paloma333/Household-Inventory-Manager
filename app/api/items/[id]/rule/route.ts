@@ -6,7 +6,10 @@ import { createSupabaseServerClient } from '@/lib/supabase/server'
  * /api/items/[id]/rule — 低库存阈值（PRD §3.5 阈值设置）
  *
  * PUT    { threshold, enabled } — upsert low_stock_rules（按 item_id 冲突更新）
- * DELETE — 删除规则，回落默认阈值 1
+ * DELETE — 删除规则，不再提醒
+ *
+ * 阈值和计数单位一致（item.unit）。threshold = 0 表示「用完才提醒」
+ * （不进「快用完」组，数量归 0 时进「已用完」组）。
  *
  * low_stock_rules 的 RLS 是「通过 items 隔离」（0002），用户身份可直接 upsert。
  */
@@ -15,7 +18,7 @@ const RuleSchema = z.object({
   threshold: z
     .number()
     .finite()
-    .positive('阈值要大于 0')
+    .min(0, '阈值不能是负数')
     .max(9999, '阈值太大了'),
   enabled: z.boolean().default(true),
 })

@@ -103,12 +103,12 @@ export default function HomePage() {
         </svg>
       </div>
 
-      {/* 欢迎语 — 动森燕尾缎带 */}
-      <header className="enter-up relative">
+      {/* 欢迎语 — 动森燕尾缎带（缎带下方有折叠装饰延伸约 12px，间距要给足） */}
+      <header className="enter-up relative text-center">
         <Title size="large">
           {greeting}，欢迎回家
         </Title>
-        <div className="mt-3 text-body text-ink-secondary num-roll">
+        <div className="mt-7 text-body text-ink-secondary num-roll">
           {data === null ? (
             <Skeleton className="h-5 w-48 mt-1" />
           ) : itemCount === 0 ? (

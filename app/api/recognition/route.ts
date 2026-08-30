@@ -13,15 +13,15 @@ import { checkQuota, logUsage } from '@/lib/ai/quota'
 import { checkDuplicate } from '@/lib/recognition/duplicate'
 
 /**
- * /api/recognition — 上传图片 → 调 AI → 落库 → 返回 batch + 候选项
+ * /api/recognition — 上传图片（1~5 张）→ 调 AI → 落库 → 返回 batch + 候选项
  *
  * POST: multipart/form-data
- *   - file: 图片文件
+ *   - file: 图片文件（可重复出现，最多 5 张，多张归入同一个批次）
  *   - sourceType: 'receipt' | 'screenshot' | 'camera'
  *
  * 响应：{
  *   ok: true,
- *   task: { recognition_id, status, source_type, image_url, model, processing_time_ms },
+ *   task: { recognition_id, status, source_type, image_url, image_urls, model, processing_time_ms },
  *   items: [{
  *     recognition_item_id, name, brand, quantity, unit, package_quantity, expiry_date,
  *     category_hint, confidence,
@@ -31,13 +31,13 @@ import { checkDuplicate } from '@/lib/recognition/duplicate'
  *
  * 错误：
  *   401 未登录
- *   400 文件缺失 / 类型不对
+ *   400 文件缺失 / 类型不对 / 张数超限
  *   413 文件过大
  *   429 配额用完
  *   500 服务端问题
  */
 
-const MAX_DURATION_LABEL_MS = 20_000 // 超过给前端显示"超时"
+const MAX_IMAGES = 5
 
 const SourceSchema = z.enum(['receipt', 'screenshot', 'camera'])
 
@@ -70,7 +70,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'invalid_form' }, { status: 400 })
   }
 
-  const file = form.get('file')
+  const files = form
+    .getAll('file')
+    .filter((f): f is File => f instanceof File)
   const sourceTypeRaw = form.get('sourceType')
 
   const sourceParsed = SourceSchema.safeParse(sourceTypeRaw)
@@ -82,14 +84,29 @@ export async function POST(request: NextRequest) {
   }
   const sourceType = sourceParsed.data
 
-  if (!(file instanceof File)) {
+  if (files.length === 0) {
     return NextResponse.json({ error: 'file 字段缺失或类型不对' }, { status: 400 })
   }
-
-  // 转 Buffer
-  const arrayBuf = await file.arrayBuffer()
-  const buffer = Buffer.from(arrayBuf)
-  const mimeType = file.type || 'image/jpeg'
+  if (files.length > MAX_IMAGES) {
+    return NextResponse.json(
+      { error: `一次最多 ${MAX_IMAGES} 张图片` },
+      { status: 400 }
+    )
+  }
+  const badFile = files.find((f) => !f.type.startsWith('image/'))
+  if (badFile) {
+    return NextResponse.json(
+      { error: `「${badFile.name.slice(0, 30)}」不是图片` },
+      { status: 400 }
+    )
+  }
+  const oversized = files.find((f) => f.size > 10 * 1024 * 1024)
+  if (oversized) {
+    return NextResponse.json(
+      { error: `「${oversized.name.slice(0, 30)}」太大（>10MB）` },
+      { status: 413 }
+    )
+  }
 
   // ── 配额闸门 ──
   const quota = await checkQuota(household.household_id)
@@ -112,28 +129,39 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  // ── 上传 Supabase Storage ──
-  const upload = await uploadRecognitionImage({
-    userId: user.id,
-    householdId: household.household_id,
-    buffer,
-    mimeType,
-  })
+  // ── 上传 Supabase Storage（多张并行） ──
+  const uploadResults = await Promise.all(
+    files.map(async (file) => {
+      const arrayBuf = await file.arrayBuffer()
+      return uploadRecognitionImage({
+        userId: user.id,
+        householdId: household.household_id,
+        buffer: Buffer.from(arrayBuf),
+        mimeType: file.type || 'image/jpeg',
+      })
+    })
+  )
 
-  if (upload.error || !upload.path) {
+  const failedUpload = uploadResults.find((u) => u.error || !u.path)
+  if (failedUpload) {
     return NextResponse.json(
-      { error: upload.error || '上传失败' },
+      { error: failedUpload.error || '上传失败' },
       { status: 500 }
     )
   }
+  const paths = uploadResults.map((u) => u.path!) // 上面已校验非空
 
-  // ── 取短期签名 URL 给 AI 用 ──
-  const signed = await getSignedImageUrl(upload.path, 60 * 10) // 10 分钟足够
-  if (signed.error || !signed.url) {
-    return NextResponse.json(
-      { error: `签名 URL 失败：${signed.error}` },
-      { status: 500 }
-    )
+  // ── 取短期签名 URL 给 AI 用（10 分钟足够） ──
+  const signedUrls: string[] = []
+  for (const path of paths) {
+    const signed = await getSignedImageUrl(path, 60 * 10)
+    if (signed.error || !signed.url) {
+      return NextResponse.json(
+        { error: `签名 URL 失败：${signed.error}` },
+        { status: 500 }
+      )
+    }
+    signedUrls.push(signed.url)
   }
 
   // ── 落 recognition_tasks，先记 pending ──
@@ -144,7 +172,8 @@ export async function POST(request: NextRequest) {
       user_id: user.id,
       household_id: household.household_id,
       source_type: sourceType,
-      image_url: upload.path, // 存原始 path，不是 signed URL
+      image_url: paths[0], // 存原始 path，不是 signed URL（首图，兼容旧字段）
+      image_paths: paths, // 全部图片 path（多图批次）
       status: 'processing',
       model: shouldUseMock() ? 'mock-v0.1' : 'qwen3.6-flash',
       // 暂时不写 processing_time_ms
@@ -159,20 +188,29 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  // ── 调 AI ──
-  let aiResult
-  try {
-    aiResult = await recognizeWithLog({
-      imageUrl: signed.url,
-      sourceType,
-    })
-  } catch (e) {
-    // 失败：更新 task 状态 / 写一行 failed log
+  // ── 调 AI（每张图一次调用，并行；部分失败不算整批失败） ──
+  const aiSettled = await Promise.allSettled(
+    signedUrls.map((imageUrl) => recognizeWithLog({ imageUrl, sourceType }))
+  )
+
+  const aiResults = aiSettled
+    .filter(
+      (r): r is PromiseFulfilledResult<Awaited<ReturnType<typeof recognizeWithLog>>> =>
+        r.status === 'fulfilled'
+    )
+    .map((r) => r.value)
+  const aiFailures = aiSettled
+    .filter((r) => r.status === 'rejected')
+    .map((r) => (r as PromiseRejectedResult).reason as Error)
+
+  if (aiResults.length === 0) {
+    // 全军覆没：更新 task 状态 / 写一行 failed log
+    const msg = aiFailures[0]?.message ?? '识别失败'
     await service
       .from('recognition_tasks')
       .update({
         status: 'failed',
-        error_message: (e as Error).message,
+        error_message: msg,
       })
       .eq('recognition_id', task.recognition_id)
     await logUsage({
@@ -181,12 +219,20 @@ export async function POST(request: NextRequest) {
       kind: 'recognition',
       tokens_used: 0,
       status: 'failed',
-      metadata: { error: (e as Error).message, recognition_id: task.recognition_id },
+      metadata: { error: msg, recognition_id: task.recognition_id },
     })
     return NextResponse.json(
-      { error: `识别失败：${(e as Error).message}` },
+      { error: `识别失败：${msg}` },
       { status: 500 }
     )
+  }
+
+  const aiResult = {
+    items: aiResults.flatMap((r) => r.items),
+    tokens_used: aiResults.reduce((sum, r) => sum + r.tokens_used, 0),
+    duration_ms: Math.max(...aiResults.map((r) => r.duration_ms)),
+    model: aiResults[0].model,
+    failed_images: aiFailures.length,
   }
 
   // ── 落 recognition_items ──
@@ -240,6 +286,8 @@ export async function POST(request: NextRequest) {
       item_count: aiResult.items.length,
       model: aiResult.model,
       duration_ms: aiResult.duration_ms,
+      image_count: signedUrls.length,
+      failed_images: aiResult.failed_images,
     },
   })
 
@@ -284,7 +332,8 @@ export async function POST(request: NextRequest) {
       recognition_id: task.recognition_id,
       status: 'succeeded',
       source_type: sourceType,
-      image_url: signed.url,
+      image_url: signedUrls[0],
+      image_urls: signedUrls,
       model: aiResult.model,
       duration_ms: aiResult.duration_ms,
     },

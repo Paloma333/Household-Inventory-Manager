@@ -234,7 +234,7 @@ export default function ItemDetailPage({
         </p>
       </header>
 
-      {/* 主数量 + Stepper */}
+      {/* 主数量 + Stepper（大数字 = 计数单位数量；有包装规格时给换算副行） */}
       <Card className="mt-6 px-6 py-8 grid place-items-center">
         <p className="text-micro uppercase tracking-wider text-ink-secondary">家里有</p>
         <div className="mt-3 flex items-baseline gap-2">
@@ -245,6 +245,19 @@ export default function ItemDetailPage({
             <span className="text-h2 text-ink-secondary">{item.unit}</span>
           )}
         </div>
+        {item.package_quantity != null && item.package_quantity >= 2 && (
+          <p className="mt-2 text-small text-ink-secondary">
+            每{item.unit ?? '件'}装{' '}
+            <strong className="text-ink-primary font-num">
+              {Math.round(item.package_quantity * 100) / 100}
+            </strong>
+            {' '}· 共{' '}
+            <strong className="text-ink-primary font-num">
+              {Math.round(item.quantity * item.package_quantity * 100) / 100}
+            </strong>{' '}
+            件
+          </p>
+        )}
         <div className="mt-6">
           <Stepper value={item.quantity} onChange={(v) => adjust(v - item.quantity)} large />
         </div>
@@ -257,7 +270,7 @@ export default function ItemDetailPage({
         {item.unit && <MetaChip icon={<Package className="h-3.5 w-3.5" />}>{item.unit}</MetaChip>}
         {item.package_quantity && (
           <MetaChip icon={<ShoppingCart className="h-3.5 w-3.5" />}>
-            一包装 {item.package_quantity}
+            一{item.unit ?? '件'}装 {item.package_quantity}
           </MetaChip>
         )}
         {item.expiry_date && (
@@ -343,7 +356,9 @@ export default function ItemDetailPage({
 function thresholdStatus(item: Item): string {
   const rule = item.low_stock_rules
   if (!rule || !rule.enabled) return '未开启'
-  return `剩 ${Number(rule.threshold)}${item.unit ?? '个'}时提醒`
+  const t = Number(rule.threshold)
+  if (t <= 0) return '用完才提醒'
+  return `剩 ${t}${item.unit ?? '个'}时提醒`
 }
 
 function BackBar() {
@@ -597,6 +612,10 @@ function EditItemSheet({
           <Input label="品牌" value={brand} onChange={(e) => setBrand(e.target.value)} />
           <Input label="单位" value={unit} onChange={(e) => setUnit(e.target.value)} />
         </div>
+        <p className="-mt-2 text-micro text-ink-tertiary">
+          单位是你随手增减时的计数单位（如提/包/瓶）。改单位只改名字，数量不会自动换算 —
+          想换算的话记得同时改数量。
+        </p>
         <Input
           kind="number"
           label="一包装多少"
@@ -659,8 +678,11 @@ function ThresholdRuleSheet({
   onSaved: () => void
 }) {
   const rule = item.low_stock_rules
+  // 无自定义规则时预填「购买量 25%」默认值，与入库时的自动规则一致
   const [threshold, setThreshold] = React.useState(
-    rule ? String(Number(rule.threshold)) : '1'
+    rule
+      ? String(Number(rule.threshold))
+      : String(Math.max(0, Math.floor(Number(item.quantity) * 0.25)))
   )
   const [enabled, setEnabled] = React.useState(rule ? rule.enabled : false)
   const [saving, setSaving] = React.useState(false)
@@ -669,8 +691,8 @@ function ThresholdRuleSheet({
 
   const save = async () => {
     const t = Number(threshold)
-    if (!Number.isFinite(t) || t <= 0) {
-      setErr('阈值要大于 0')
+    if (!Number.isFinite(t) || t < 0) {
+      setErr('阈值不能是负数')
       return
     }
     setSaving(true)
@@ -714,14 +736,14 @@ function ThresholdRuleSheet({
     <Sheet open onOpenChange={(o) => !o && onClose()} title="低库存提醒">
       <div className="flex flex-col gap-4">
         <p className="text-small text-ink-secondary">
-          勾上后，剩得不多时会提醒补货，也会出现在补货建议的「快用完」里；不勾就完全不提醒
+          勾上后，剩得不多时会提醒补货，也会出现在补货建议的「快用完」里；不勾就完全不提醒。阈值按你现在的计数单位（{unit}）算。
         </p>
 
         <div className="flex items-end gap-2">
           <div className="flex-1">
             <Input
               kind="number"
-              label="低于多少时提醒"
+              label={`低于多少${unit}时提醒（0 = 用完才提醒）`}
               value={threshold}
               onChange={(e) => setThreshold(e.target.value)}
               min={0}

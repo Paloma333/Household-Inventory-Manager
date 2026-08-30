@@ -83,17 +83,26 @@ export async function GET(
     })
   )
 
-  // 取临时签名 URL，前端用来预览
-  let imageUrl: string | null = null
-  if (task.image_url) {
-    const signed = await getSignedImageUrl(task.image_url, 60 * 10)
-    imageUrl = signed.url
-  }
+  // 取临时签名 URL，前端用来预览（多图批次把每张都签出来）
+  const paths: string[] =
+    Array.isArray(task.image_paths) && task.image_paths.length > 0
+      ? task.image_paths
+      : task.image_url
+        ? [task.image_url]
+        : []
+  const signedList = await Promise.all(
+    paths.map((p) => getSignedImageUrl(p, 60 * 10))
+  )
+  const imageUrls = signedList
+    .map((s) => s.url)
+    .filter((u): u is string => typeof u === 'string')
+  const imageUrl = imageUrls[0] ?? null
 
   return NextResponse.json({
     task: {
       ...task,
       image_url_preview: imageUrl,
+      image_urls_preview: imageUrls,
     },
     items: itemsWithDup,
   })

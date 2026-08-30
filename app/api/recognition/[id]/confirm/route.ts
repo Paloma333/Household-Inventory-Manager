@@ -141,12 +141,21 @@ export async function POST(
   let skippedItems = 0
   const touchedItemIds: string[] = []
 
-  // 「快用完时提醒我」→ 建 low_stock_rule（幂等 upsert，threshold 默认 1）
-  async function ensureRestockRule(itemId: string, enabled?: boolean) {
+  // 「快用完时提醒我」→ 建 low_stock_rule
+  // 默认阈值 = 本次入库量的 25% 向下取整（QA 2026-08-30 单位感知设计）：
+  //   - 买 1 瓶牛奶 → 阈值 0：不误报「快用完了」，用完自动进「已用完」组
+  //   - 买 12 包面巾纸 → 阈值 3：剩 1~3 包才提醒
+  //   - 以大单位计数（买 1 提）→ 阈值 0：剩 1 提不打扰，剩 0 提才提醒
+  // 阈值和计数单位（quantity 的 unit）永远一致；已有自定义阈值不覆盖。
+  async function ensureRestockRule(itemId: string, quantity: number, enabled?: boolean) {
     if (!enabled) return
+    const threshold = Math.max(0, Math.floor(Number(quantity || 0) * 0.25))
     await service
       .from('low_stock_rules')
-      .upsert({ item_id: itemId, threshold: 1, enabled: true }, { onConflict: 'item_id' })
+      .upsert(
+        { item_id: itemId, threshold, enabled: true },
+        { onConflict: 'item_id', ignoreDuplicates: true } // 不覆盖已有自定义阈值
+      )
   }
 
   for (const d of decisions) {
@@ -217,7 +226,7 @@ export async function POST(
         .eq('recognition_item_id', d.recognition_item_id)
 
       // 快用完提醒（勾选了才建规则）
-      await ensureRestockRule(created.item_id, d.restock_alert)
+      await ensureRestockRule(created.item_id, d.final_quantity, d.restock_alert)
 
       newItems++
       touchedItemIds.push(created.item_id)
@@ -272,7 +281,7 @@ export async function POST(
               corrected: d.corrected ?? false,
             })
             .eq('recognition_item_id', d.recognition_item_id)
-          await ensureRestockRule(created.item_id, d.restock_alert)
+          await ensureRestockRule(created.item_id, d.final_quantity, d.restock_alert)
           newItems++
           touchedItemIds.push(created.item_id)
         }
@@ -333,7 +342,7 @@ export async function POST(
       touchedItemIds.push(existing.item_id)
 
       // merge 也支持「快用完时提醒我」（对既有 item 建规则）
-      await ensureRestockRule(existing.item_id, d.restock_alert)
+      await ensureRestockRule(existing.item_id, d.final_quantity, d.restock_alert)
     }
   }
 

@@ -8,8 +8,9 @@ import { cn } from '@/lib/utils/cn'
 /**
  * Toast — PRD §2.6 / §5
  *
- * 仅用于撤销提示（5s）和错误信息（手动关闭）；成功不弹 toast。
- * 还有一个底部 UndoBar（删除类操作专用）。
+ * 全部自动消失（QA 2026-08-30：报错提示不能让用户自己关）：
+ *   - info 3s / error 5s / undo 5s；error 保留手动关闭按钮，可提前关。
+ * 成功不弹 toast，还有一个底部 UndoBar（删除类操作专用）。
  *
  * 用全局 subscription 模型而不是每个调用方管理 state，避免组件树污染。
  */
@@ -68,8 +69,13 @@ export const toast = {
     }),
   success: (message: string) =>
     toastStore.push({ tone: 'success', message, durationMs: 0 }), // 成功不弹 toast — 默认 0，但有时会用迷你光晕替代
-  error: (message: string) =>
-    toastStore.push({ tone: 'error', message, durationMs: 0 }), // 错误持续到用户关闭
+  error: (message: string, opts?: { durationMs?: number }) =>
+    toastStore.push({
+      tone: 'error',
+      message,
+      // 报错也自动消失（QA：不要让用户自己关）；错误信息多看一会儿，给 5s
+      durationMs: opts?.durationMs ?? 5000,
+    }),
   undo: (message: string, action: () => void) =>
     toastStore.push({
       tone: 'info',
@@ -128,7 +134,7 @@ export function ToastViewport() {
                 {t.action.label}
               </button>
             )}
-            {t.durationMs === 0 && (
+            {(t.durationMs === 0 || t.tone === 'error') && (
               <button
                 type="button"
                 aria-label="关闭"

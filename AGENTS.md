@@ -25,7 +25,7 @@ app/r/[shareToken]/  补货清单公开分享页（无需登录）
 lib/supabase/     server / client / middleware 三件套 + storage
 lib/ai/           qwen 适配器 + mock + 配额闸门（quota）
 lib/recognition, lib/restock, lib/inventory/  领域逻辑
-supabase/migrations/  数据库 schema 唯一事实来源（0001–0008）
+supabase/migrations/  数据库 schema 唯一事实来源（0001–0009）
 docs/             PRD、UI 规格、视觉任务书
 ```
 
@@ -48,6 +48,8 @@ docs/             PRD、UI 规格、视觉任务书
 ## 重要业务逻辑
 
 - **识别流程**：上传图 → 建 `recognition_tasks` + 解析出 `recognition_items`（草稿）→ 用户在 `/confirm/[batchId]` 勾选修正 → 落库成 items + 新增事件。草稿可存 `/drafts`
+- **多图识别**：`POST /api/recognition` 支持一次最多 5 张图（form-data 多个 `file`），多张图并行调 AI（`Promise.allSettled`），全部失败才算任务失败。存储路径存在 `recognition_tasks.image_paths`（jsonb 数组，0009 迁移新增），`image_url` 只存第一张做向后兼容。取详情时对每个 path 签名，返回 `image_urls_preview`
+- **低库存默认阈值**：确认入库时若 AI 给了 restock_hint，`ensureRestockRule` 按 `floor(入库数量 × 25%)` 设默认阈值（0 = 只在用完时提醒），upsert `onConflict: 'item_id' + ignoreDuplicates`，**不覆盖用户自定义阈值**。阈值永远按物品的计数单位（unit）算：买 1 瓶牛奶 → 阈值 0（不误报「快用完了」）；买 12 包纸巾 → 阈值 3。用户可在物品详情改成 0（用完才提醒）
 - **AI mock 模式**：`DASHSCOPE_API_KEY` 未设或 `MOCK_AI=1` 时走 `lib/ai/mock.ts`（不花钱，本地开发默认）。识别解析失败要明示失败让用户重试，**不要静默回落 mock**
 - **配额闸门**：调 AI 前先过 `lib/ai/quota.ts`（默认每家每日 30 次成功、每月 50 万 token，可用 `MAX_DAILY_PER_HHOLD` / `MAX_MONTHLY_TOKENS` 覆盖）。被拦截也写一条 `blocked_quota` 的 usage_log
 - 物品事件文案按 `quantity_change` 方向区分（正=新增、负=用掉），不要按 event_type 硬编码

@@ -101,6 +101,7 @@ export default function ConfirmPage({
     status: string
     source_type: string
     image_url_preview: string | null
+    image_urls_preview: string[] | null
     model: string
     processing_time_ms: number | null
     created_at: string
@@ -426,20 +427,36 @@ export default function ConfirmPage({
         )}
       </header>
 
-      {/* 预览图 + 统计 */}
+      {/* 预览图 + 统计（多图批次显示缩略图组） */}
       <section className="mt-6 flex items-start gap-3 rounded-md bg-bg-canvas p-3">
-        {task.image_url_preview ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={task.image_url_preview}
-            alt="识别原图"
-            className="h-16 w-16 rounded-sm object-cover"
-          />
-        ) : (
-          <div className="h-16 w-16 rounded-sm bg-bg-elevated grid place-items-center text-ink-secondary">
-            <ImageIcon className="h-6 w-6" />
-          </div>
-        )}
+        <div className="flex gap-1.5 shrink-0">
+          {(task.image_urls_preview && task.image_urls_preview.length > 0
+            ? task.image_urls_preview
+            : task.image_url_preview
+              ? [task.image_url_preview]
+              : []
+          )
+            .slice(0, 3)
+            .map((url, i) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={url + i}
+                src={url}
+                alt={`识别原图 ${i + 1}`}
+                className="h-16 w-16 rounded-sm object-cover border border-border-hairline"
+              />
+            ))}
+          {(task.image_urls_preview?.length ?? 0) > 3 && (
+            <div className="h-16 w-16 rounded-sm bg-bg-elevated grid place-items-center text-small text-ink-secondary">
+              +{(task.image_urls_preview?.length ?? 3) - 3}
+            </div>
+          )}
+          {!(task.image_urls_preview?.length) && !task.image_url_preview && (
+            <div className="h-16 w-16 rounded-sm bg-bg-elevated grid place-items-center text-ink-secondary">
+              <ImageIcon className="h-6 w-6" />
+            </div>
+          )}
+        </div>
         <div className="flex-1 min-w-0">
           <p className="text-small text-ink-primary">
             {items.length} 件商品 ·{' '}
