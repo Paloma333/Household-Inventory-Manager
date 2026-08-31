@@ -36,8 +36,8 @@ function BottomNav() {
   ]
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-30 bg-bg-elevated border-t border-border-hairline pb-safe">
-      <ul className="grid grid-cols-5 items-end max-w-md mx-auto">
+    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] z-30 bg-bg-elevated border-t border-border-hairline pb-safe">
+      <ul className="grid grid-cols-5 items-end">
         {tabs.slice(0, 2).map((t) => (
           <NavItem key={t.href} {...t} active={pathname === t.href} />
         ))}

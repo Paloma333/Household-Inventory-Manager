@@ -82,7 +82,10 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-bg-canvas text-ink-primary antialiased">
-        {children}
+        {/* 手机端大小：固定 480px 居中，大屏只显示手机宽度（外侧 cream bg 与内无缝衔接） */}
+        <div className="mx-auto w-full max-w-[480px] min-h-screen relative">
+          {children}
+        </div>
         <ToastViewport />
       </body>
     </html>

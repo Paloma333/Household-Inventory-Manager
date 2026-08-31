@@ -132,6 +132,17 @@ export default function HomePage() {
         </div>
       </header>
 
+      {/* 欢迎插图：两只端着蛋糕的浣熊（PNG 已 chroma-key，背景透出页面 bg） */}
+      <figure className="mt-6 enter-up">
+        <img
+          src="/illustrations/raccoon-welcome.png"
+          alt="两只小浣熊端着一份小蛋糕，欢迎回家"
+          width={874}
+          height={404}
+          className="block w-full max-w-[340px] mx-auto select-none"
+        />
+      </figure>
+
       {error && (
         <p className="mt-4 text-small text-accent-clay">{error}</p>
       )}
