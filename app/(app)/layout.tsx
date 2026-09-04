@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Home, Boxes, Plus, ClipboardList, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
+import QueryProvider from '@/components/providers/QueryProvider'
 
 /**
  * 主应用 layout（受保护路由组）
@@ -18,10 +19,12 @@ export default function AppLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="min-h-screen flex flex-col">
-      <main className="flex-1 pb-24">{children}</main>
-      <BottomNav />
-    </div>
+    <QueryProvider>
+      <div className="min-h-screen flex flex-col">
+        <main className="flex-1 pb-24">{children}</main>
+        <BottomNav />
+      </div>
+    </QueryProvider>
   )
 }
 

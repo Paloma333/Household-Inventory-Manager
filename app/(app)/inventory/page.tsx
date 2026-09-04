@@ -3,6 +3,7 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { Search, AlertTriangle, Clock, MapPin, SlidersHorizontal, Trash2, X, Check, FolderOpen } from 'lucide-react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Card } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { Btn } from '@/components/ui/Btn'
@@ -50,8 +51,7 @@ const CATEGORY_ORDER: string[] = [
 ]
 
 export default function InventoryPage() {
-  const [allItems, setAllItems] = React.useState<Item[] | null>(null)
-  const [error, setError] = React.useState<string | null>(null)
+  const queryClient = useQueryClient()
   const [search, setSearch] = React.useState('')
   const [debouncedSearch, setDebouncedSearch] = React.useState('')
   const [activeCategory, setActiveCategory] = React.useState<string>('all')
@@ -64,23 +64,27 @@ export default function InventoryPage() {
   const [moveCats, setMoveCats] = React.useState<Array<{ id: string; name: string }>>([])
   const [moveCatsLoading, setMoveCatsLoading] = React.useState(false)
 
-  // 初次加载
-  const reload = React.useCallback(async () => {
-    setError(null)
-    try {
+  // items 列表查询（30s 内跨页面复用缓存，详见 QueryProvider）
+  const itemsQuery = useQuery<Item[]>({
+    queryKey: ['items'],
+    queryFn: async () => {
       const res = await fetch('/api/items', { cache: 'no-store' })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || '加载失败')
-      setAllItems(data.items ?? [])
-    } catch (e: any) {
-      setError(e?.message ?? '加载失败')
-    }
-  }, [])
+      return data.items ?? []
+    },
+  })
+  const allItems = itemsQuery.data ?? null
+  const error = itemsQuery.error ? (itemsQuery.error as Error).message || '加载失败' : null
+
+  // 失效缓存（写操作后调用）：删除/移动/编辑后让下次进入立刻拿到新数据
+  const reload = React.useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey: ['items'] })
+  }, [queryClient])
 
   React.useEffect(() => {
-    void reload()
     track(Events.InventoryViewed, { source: 'home' })
-  }, [reload])
+  }, [])
 
   // debounce search
   React.useEffect(() => {

@@ -13,6 +13,7 @@ import {
   Trash2,
   Share2,
 } from 'lucide-react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Btn } from '@/components/ui/Btn'
 import { Title } from 'animal-island-ui'
 import { Card } from '@/components/ui/Card'
@@ -36,33 +37,48 @@ import { cn } from '@/lib/utils/cn'
  */
 
 export default function RestockPage() {
-  const [suggest, setSuggest] = React.useState<SuggestResult | null>(null)
-  const [lists, setLists] = React.useState<RestockList[] | null>(null)
-  const [error, setError] = React.useState<string | null>(null)
+  const queryClient = useQueryClient()
   const [creating, setCreating] = React.useState(false)
 
+  // 补货建议 + 清单列表并行查询（30s 内跨页面复用缓存，详见 QueryProvider）
+  const suggestQuery = useQuery<SuggestResult>({
+    queryKey: ['restock', 'suggest'],
+    queryFn: async () => {
+      const res = await fetch('/api/restock/suggest', { cache: 'no-store' })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error || '建议加载失败')
+      return json.suggest as SuggestResult
+    },
+  })
+  const listsQuery = useQuery<RestockList[]>({
+    queryKey: ['restock', 'lists'],
+    queryFn: async () => {
+      const res = await fetch('/api/restock', { cache: 'no-store' })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error || '清单加载失败')
+      return (json.lists as RestockList[]) ?? []
+    },
+  })
+  const suggest = suggestQuery.data ?? null
+  const lists = listsQuery.data ?? null
+  const error =
+    suggestQuery.error
+      ? (suggestQuery.error as Error).message || '建议加载失败'
+      : listsQuery.error
+      ? (listsQuery.error as Error).message || '清单加载失败'
+      : null
+
   const reload = React.useCallback(async () => {
-    setError(null)
-    try {
-      const [sRes, lRes] = await Promise.all([
-        fetch('/api/restock/suggest', { cache: 'no-store' }),
-        fetch('/api/restock', { cache: 'no-store' }),
-      ])
-      const [sJson, lJson] = await Promise.all([sRes.json(), lRes.json()])
-      if (!sRes.ok) throw new Error(sJson.error || '建议加载失败')
-      if (!lRes.ok) throw new Error(lJson.error || '清单加载失败')
-      setSuggest(sJson.suggest as SuggestResult)
-      setLists((lJson.lists as RestockList[]) ?? [])
-    } catch (e: any) {
-      setError(e?.message ?? '加载失败')
-    }
-  }, [])
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['restock', 'suggest'] }),
+      queryClient.invalidateQueries({ queryKey: ['restock', 'lists'] }),
+    ])
+  }, [queryClient])
 
   React.useEffect(() => {
-    void reload()
     track(Events.RestockViewed, { source: 'nav' })
     track(Events.RestockSuggestionShown, {})
-  }, [reload])
+  }, [])
 
   async function handleCreateList() {
     setCreating(true)

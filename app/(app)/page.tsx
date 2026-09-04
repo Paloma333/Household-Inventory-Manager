@@ -3,6 +3,7 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { ArrowRight, AlertTriangle, Clock, Sparkles } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
 import { Title } from 'animal-island-ui'
 import { Btn } from '@/components/ui/Btn'
 import { Card } from '@/components/ui/Card'
@@ -55,26 +56,21 @@ function eventLabel(e: RecentEvent): string {
 }
 
 export default function HomePage() {
-  const [data, setData] = React.useState<DashboardData | null>(null)
-  const [error, setError] = React.useState<string | null>(null)
-
-  const reload = React.useCallback(async () => {
-    setError(null)
-    try {
+  const { data, error } = useQuery<DashboardData>({
+    queryKey: ['dashboard'],
+    queryFn: async () => {
       const res = await fetch('/api/dashboard', { cache: 'no-store' })
       const json = await res.json()
       if (!res.ok || json.error) throw new Error(json.error || '加载失败')
-      setData(json)
-    } catch (e: any) {
-      setError(e?.message ?? '加载失败')
-    }
-  }, [])
+      return json
+    },
+  })
 
   React.useEffect(() => {
-    void reload()
     track(Events.AppOpen, { source: 'web' })
-  }, [reload])
+  }, [])
 
+  const errorMessage = error ? (error as Error).message || '加载失败' : null
   const greeting = pickGreeting()
   const itemCount = data?.itemCount ?? 0
   const lowStock = data?.lowStockCount ?? 0
@@ -134,17 +130,20 @@ export default function HomePage() {
 
       {/* 欢迎插图：两只端着蛋糕的浣熊（PNG 已 chroma-key，背景透出页面 bg） */}
       <figure className="mt-6 enter-up">
-        <img
-          src="/illustrations/raccoon-welcome.png"
-          alt="两只小浣熊端着一份小蛋糕，欢迎回家"
-          width={874}
-          height={404}
-          className="block w-full max-w-[340px] mx-auto select-none"
-        />
+        <picture>
+          <source srcSet="/illustrations/raccoon-welcome.webp" type="image/webp" />
+          <img
+            src="/illustrations/raccoon-welcome.png"
+            alt="两只小浣熊端着一份小蛋糕，欢迎回家"
+            width={874}
+            height={404}
+            className="block w-full max-w-[340px] mx-auto select-none"
+          />
+        </picture>
       </figure>
 
-      {error && (
-        <p className="mt-4 text-small text-accent-clay">{error}</p>
+      {errorMessage && (
+        <p className="mt-4 text-small text-accent-clay">{errorMessage}</p>
       )}
 
       {/* 品类一览 chips：纯文字，点进去就是库存 */}
