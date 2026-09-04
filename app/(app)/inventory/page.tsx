@@ -258,7 +258,7 @@ export default function InventoryPage() {
   return (
     <div className="px-4 pt-6 pb-24 sm:px-6">
       <header className="px-2 flex items-start justify-between">
-        <div>
+        <div className="flex-1 text-center">
           <h1 className="font-semibold text-h1 text-ink-primary">
             {managing ? '管理物品' : '库存'}
           </h1>

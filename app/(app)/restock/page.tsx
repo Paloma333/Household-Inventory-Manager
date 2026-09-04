@@ -107,7 +107,7 @@ export default function RestockPage() {
 
   return (
     <div className="px-6 pt-10 pb-6">
-      <header>
+      <header className="text-center">
         <Title size="large">补货</Title>
         <p className="mt-3 text-body text-ink-secondary">
           {suggest === null
