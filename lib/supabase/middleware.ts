@@ -53,6 +53,19 @@ export async function updateSession(request: NextRequest) {
     return response
   }
 
+  // 静态资源兜底放行（Vercel 按 matcher 自动跳过，EdgeOne Pages 等
+  // Edge Function 平台会把所有请求都送进 middleware，包括 _next/static。
+  // 不放行的话，未登录态下静态文件会被 307 到 /login，浏览器永远拿不到 JS，页面白屏）
+  if (
+    pathname.startsWith('/_next/') ||
+    pathname === '/favicon.ico' ||
+    pathname === '/manifest.webmanifest' ||
+    pathname.startsWith('/icons/') ||
+    pathname.startsWith('/illustrations/')
+  ) {
+    return response
+  }
+
   const isPublic =
     PUBLIC_PATHS.has(pathname) ||
     pathname.startsWith('/auth/') ||
